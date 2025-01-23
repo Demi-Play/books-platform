@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="mui-panel">
+    <form method="POST" enctype="multipart/form-data" class="mui-form">
+        {{ form.csrf_token }}
+        <legend>Загрузка книги</legend>
+
+        <div class="mui-textfield">
+            {{ form.title(placeholder="Название книги") }}
+            <label>Название</label>
+        </div>
+
+        <div class="mui-textfield">
+            {{ form.description(placeholder="Описание книги") }}
+            <label>Описание</label>
+        </div>
+
+        <div class="mui-file">
+            {{ form.book_file }}
+            <label>Файл книги</label>
+        </div>
+
+        <div class="mui-file">
+            {{ form.cover_image }}
+            <label>Обложка</label>
+        </div>
+
+        <div class="mui-select">
+            {{ form.genres(multiple=true) }}
+            <label>Жанры</label>
+        </div>
+
+        <button type="submit" class="mui-btn mui-btn--primary">Загрузить</button>
+    </form>
+</div>
+{% endblock %}

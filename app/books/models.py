@@ -1,6 +1,6 @@
 from datetime import datetime
 from sqlalchemy.orm import relationship
-from auth.models import db, User, UserRole
+from ..auth.models import db, User, UserRole
 
 class Genre(db.Model):
     __tablename__ = 'genres'

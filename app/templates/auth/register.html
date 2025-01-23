@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="mui-container">
+    <div class="mui-panel">
+        <form method="POST" class="mui-form">
+            {{ form.csrf_token }}
+            <legend>Регистрация</legend>
+
+            <div class="mui-textfield">
+                {{ form.username(placeholder="Имя пользователя") }}
+                <label>Имя пользователя</label>
+            </div>
+
+            <div class="mui-textfield">
+                {{ form.email(placeholder="Email") }}
+                <label>Email</label>
+            </div>
+
+            <div class="mui-textfield">
+                {{ form.password(placeholder="Пароль") }}
+                <label>Пароль</label>
+            </div>
+
+            <div class="mui-textfield">
+                {{ form.confirm_password(placeholder="Подтвердите пароль") }}
+                <label>Подтверждение пароля</label>
+            </div>
+
+            <button type="submit" class="mui-btn mui-btn--primary">Зарегистрироваться</button>
+        </form>
+    </div>
+</div>
+{% endblock %}

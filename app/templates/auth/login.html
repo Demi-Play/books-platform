@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="mui-panel">
+    <form method="POST" class="mui-form">
+        {{ form.csrf_token }}
+        <legend>Вход</legend>
+        
+        <div class="mui-textfield">
+            {{ form.email(placeholder="Email") }}
+            <label>Email</label>
+        </div>
+
+        <div class="mui-textfield">
+            {{ form.password(placeholder="Пароль") }}
+            <label>Пароль</label>
+        </div>
+
+        <div class="mui-checkbox">
+            {{ form.remember }} 
+            <label>Запомнить меня</label>
+        </div>
+
+        <button type="submit" class="mui-btn mui-btn--primary">Войти</button>
+    </form>
+</div>
+{% endblock %}

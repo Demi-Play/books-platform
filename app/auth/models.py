@@ -1,4 +1,5 @@
 from datetime import datetime
+from flask_login import UserMixin
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import generate_password_hash, check_password_hash
 from enum import Enum
@@ -11,7 +12,7 @@ class UserRole(Enum):
     ADMIN = 'admin'
     AUTHOR = 'author'
 
-class User(db.Model):
+class User(db.Model, UserMixin):
     __tablename__ = 'users'
 
     id = db.Column(db.Integer, primary_key=True)
@@ -19,6 +20,7 @@ class User(db.Model):
     email = db.Column(db.String(120), unique=True, nullable=False)
     password_hash = db.Column(db.String(255), nullable=False)
     role = db.Column(db.Enum(UserRole), default=UserRole.USER)
+    
     
     # Персональные данные
     first_name = db.Column(db.String(50))
@@ -41,5 +43,12 @@ class User(db.Model):
     def check_password(self, password):
         return check_password_hash(self.password_hash, password)
 
+    # @property
+    # def is_active(self):
+    #     return True
+    
+    # def get_id(self):
+    #     return self.id
+    
     def __repr__(self):
         return f'<User {self.username}>'

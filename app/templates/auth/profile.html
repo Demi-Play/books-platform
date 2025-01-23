@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="mui-container">
+    <div class="mui-panel">
+        <h2>Профиль пользователя</h2>
+        
+        <form method="POST" enctype="multipart/form-data" class="mui-form">
+            {{ form.csrf_token }}
+            
+            <div class="mui-textfield">
+                {{ form.first_name(placeholder="Имя") }}
+                <label>Имя</label>
+            </div>
+
+            <div class="mui-textfield">
+                {{ form.last_name(placeholder="Фамилия") }}
+                <label>Фамилия</label>
+            </div>
+
+            <div class="mui-textfield">
+                {{ form.bio(placeholder="О себе") }}
+                <label>О себе</label>
+            </div>
+
+            <div class="mui-file">
+                {{ form.avatar }}
+                <label>Аватар</label>
+            </div>
+
+            <button type="submit" class="mui-btn mui-btn--primary">Обновить профиль</button>
+        </form>
+    </div>
+</div>
+{% endblock %}

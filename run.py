@@ -4,10 +4,7 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from flask_login import LoginManager
 from flask_cors import CORS
-from dotenv import load_dotenv
 
-# Загрузка переменных окружения
-load_dotenv()
 
 # Импорт моделей
 from app.auth.models import db, User
@@ -16,14 +13,16 @@ from app.books.models import Book, Genre, ReadingClub
 # Импорт блюпринтов
 from app.auth.routes import auth_bp
 from app.books.routes import books_bp
+from app.main.routes import main_bp
 from app.user.routes import user_bp
+from app.reading_clubs.routes import reading_clubs_bp
 
 class Config:
     """Конфигурация приложения"""
     SECRET_KEY = os.getenv('SECRET_KEY', 'your_super_secret_key')
     
     # Конфигурация базы данных
-    SQLALCHEMY_DATABASE_URI = os.getenv('DATABASE_URL', 'postgresql://user:password@localhost/booksplatform')
+    SQLALCHEMY_DATABASE_URI = os.getenv('DATABASE_URL', 'sqlite:///booksplatform.db')
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     
     # Настройки безопасности
@@ -36,7 +35,7 @@ class Config:
 
 def create_app(config_class=Config):
     """Фабрика приложений"""
-    app = Flask(__name__)
+    app = Flask(__name__, template_folder='./app/templates')
     app.config.from_object(config_class)
     
     # Инициализация расширений
@@ -56,9 +55,12 @@ def create_app(config_class=Config):
         return User.query.get(int(user_id))
     
     # Регистрация блюпринтов
+    app.register_blueprint(main_bp)
     app.register_blueprint(auth_bp, url_prefix='/auth')
     app.register_blueprint(books_bp, url_prefix='/books')
     app.register_blueprint(user_bp, url_prefix='/user')
+    app.register_blueprint(reading_clubs_bp, url_prefix='/clubs')
+    
     
     # Создание папки для загрузок
     os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
