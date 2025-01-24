@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="mui-container">
+    <div class="mui-panel">
+        <h2>Личный кабинет</h2>
+        
+        <div class="mui-row">
+            <div class="mui-col-md-4">
+                <div class="mui-panel">
+                    <h3>Мой профиль</h3>
+                    <p>{{ current_user.username }}</p>
+                    <p>{{ current_user.email }}</p>
+                    <a href="{{ url_for('auth.profile') }}" class="mui-btn mui-btn--primary">Редактировать</a>
+                </div>
+            </div>
+            
+            <div class="mui-col-md-4">
+                <div class="mui-panel">
+                    <h3>Мои книги</h3>
+                    {% if uploaded_books %}
+                        <ul>
+                        {% for book in uploaded_books %}
+                            <li>{{ book.title }}</li>
+                        {% endfor %}
+                        </ul>
+                    {% else %}
+                        <p>Вы еще не загрузили книг</p>
+                    {% endif %}
+                    <a href="{{ url_for('books.upload_book') }}" class="mui-btn mui-btn--primary">Загрузить книгу</a>
+                </div>
+            </div>
+            
+            <div class="mui-col-md-4">
+                <div class="mui-panel">
+                    <h3>Закладки</h3>
+                    {% if bookmarks %}
+                        <ul>
+                        {% for bookmark in bookmarks %}
+                            <li>
+                                {{ bookmark.book.title }} 
+                                (Страница {{ bookmark.page }})
+                            </li>
+                        {% endfor %}
+                        </ul>
+                    {% else %}
+                        <p>У вас пока нет закладок</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

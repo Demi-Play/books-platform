@@ -1,9 +1,11 @@
-from flask import Blueprint, request, jsonify, render_template, current_app
+from flask import Blueprint, abort, flash, redirect, request, jsonify, render_template, current_app, send_file, url_for
 from flask_login import login_required, current_user
 from .models import Book, Genre, Bookmark, Like, Comment, db
 from .forms import BookUploadForm, BookUpdateForm
 import os
 from werkzeug.utils import secure_filename
+from werkzeug.datastructures import MultiDict
+
 
 books_bp = Blueprint('books', __name__)
 
@@ -12,7 +14,12 @@ books_bp = Blueprint('books', __name__)
 def upload_book():
     """Загрузка новой книги"""
     if request.method == 'POST':
-        form = BookUploadForm(request.form, request.files)
+        # Создаем MultiDict для формы
+        form_data = MultiDict(request.form)
+        form_data.update(request.files)
+        
+        form = BookUploadForm(form_data)
+        
         if form.validate():
             book_file = request.files['book_file']
             cover_file = request.files.get('cover_image')
@@ -46,18 +53,18 @@ def upload_book():
             db.session.add(new_book)
             db.session.commit()
             
-            return jsonify({
-                'status': 'success', 
-                'message': 'Книга успешно загружена',
-                'book_id': new_book.id
-            }), 201
+            flash('Книга успешно загружена', 'success')
+            return redirect(url_for('books.list_books'))
         
-        return jsonify({
-            'status': 'error', 
-            'errors': form.errors
-        }), 400
+        # Обработка ошибок валидации
+        for field, errors in form.errors.items():
+            for error in errors:
+                flash(f'{getattr(form, field).label.text}: {error}', 'error')
+        
+        return render_template('books/book_upload.html', form=form)
     
-    return render_template('books/upload.html')
+    form = BookUploadForm()
+    return render_template('books/book_upload.html', form=form)
 
 @books_bp.route('/', methods=['GET'])
 def list_books():
@@ -72,43 +79,36 @@ def list_books():
     
     books = query.paginate(page=page, per_page=per_page)
     
-    return jsonify({
-        'books': [
-            {
-                'id': book.id,
-                'title': book.title,
-                'description': book.description,
-                'author': book.author.username,
-                'cover': book.cover_image
-            } for book in books.items
-        ],
-        'total_pages': books.pages,
-        'current_page': books.page
-    }), 200
+    # Преобразование книг с полным путем к обложке
+    book_list = []
+    for book in books.items:
+        book_data = {
+            'id': book.id,
+            'title': book.title,
+            'description': book.description,
+            'cover_image': book.cover_image
+            }
+        book_list.append(book_data)
+    
+    return render_template('books/book_list.html', 
+        books=book_list, 
+        pagination=books
+    )
 
-@books_bp.route('/<int:book_id>', methods=['GET', 'PUT', 'DELETE'])
+@books_bp.route('/<int:book_id>', methods=['GET', 'POST', 'DELETE'])
 @login_required
 def book_details(book_id):
     """Детали, обновление и удаление книги"""
     book = Book.query.get_or_404(book_id)
     
     if request.method == 'GET':
-        return jsonify({
-            'id': book.id,
-            'title': book.title,
-            'description': book.description,
-            'author': book.author.username,
-            'genres': [genre.name for genre in book.genres],
-            'cover': book.cover_image
-        }), 200
+        return render_template('books/book_detail.html', book=book)
     
-    elif request.method == 'PUT':
+    elif request.method == 'POST':
         # Проверка прав на редактирование
         if book.author_id != current_user.id:
-            return jsonify({
-                'status': 'error', 
-                'message': 'Недостаточно прав'
-            }), 403
+            flash('Недостаточно прав', 'error')
+            return redirect(url_for('books.book_details', book_id=book_id))
         
         form = BookUpdateForm(request.form)
         if form.validate():
@@ -124,31 +124,27 @@ def book_details(book_id):
             
             db.session.commit()
             
-            return jsonify({
-                'status': 'success', 
-                'message': 'Книга обновлена'
-            }), 200
+            flash('Книга обновлена', 'success')
+            return redirect(url_for('books.book_details', book_id=book_id))
         
-        return jsonify({
-            'status': 'error', 
-            'errors': form.errors
-        }), 400
+        # Обработка ошибок валидации
+        for field, errors in form.errors.items():
+            for error in errors:
+                flash(f'{getattr(form, field).label.text}: {error}', 'error')
+        
+        return render_template('books/book_detail.html', book=book, form=form)
     
     elif request.method == 'DELETE':
         # Проверка прав на удаление
         if book.author_id != current_user.id:
-            return jsonify({
-                'status': 'error', 
-                'message': 'Недостаточно прав'
-            }), 403
+            flash('Недостаточно прав', 'error')
+            return redirect(url_for('books.list_books'))
         
         db.session.delete(book)
         db.session.commit()
         
-        return jsonify({
-            'status': 'success', 
-            'message': 'Книга удалена'
-        }), 200
+        flash('Книга удалена', 'success')
+        return redirect(url_for('books.list_books'))
 
 @books_bp.route('/<int:book_id>/bookmark', methods=['POST', 'DELETE'])
 @login_required
@@ -157,7 +153,7 @@ def manage_bookmark(book_id):
     book = Book.query.get_or_404(book_id)
     
     if request.method == 'POST':
-        page = request.json.get('page', 1)
+        page = request.form.get('page', 1, type=int)
         
         # Проверка/создание закладки
         bookmark = Bookmark.query.filter_by(
@@ -177,10 +173,8 @@ def manage_bookmark(book_id):
         
         db.session.commit()
         
-        return jsonify({
-            'status': 'success', 
-            'message': 'Закладка сохранена'
-        }), 200
+        flash('Закладка сохранена', 'success')
+        return redirect(url_for('books.book_details', book_id=book_id))
     
     elif request.method == 'DELETE':
         # Удаление закладки
@@ -193,7 +187,44 @@ def manage_bookmark(book_id):
             db.session.delete(bookmark)
             db.session.commit()
         
-        return jsonify({
-            'status': 'success', 
-            'message': 'Закладка удалена'
-        }), 200
+        flash('Закладка удалена', 'success')
+        return redirect(url_for('books.book_details', book_id=book_id))
+
+@books_bp.route('/<int:book_id>/read', methods=['GET'])
+@login_required
+def read_book(book_id):
+    book = Book.query.get_or_404(book_id)
+    
+    # Получение или создание закладки
+    bookmark = Bookmark.query.filter_by(
+        user_id=current_user.id, 
+        book_id=book_id
+    ).first()
+    
+    # Создание закладки, если ее нет
+    if not bookmark:
+        bookmark = Bookmark(
+            user_id=current_user.id, 
+            book_id=book_id, 
+            page=1
+        )
+        db.session.add(bookmark)
+        db.session.commit()
+    
+    return render_template('books/book_reader.html', 
+        book=book, 
+        bookmark=bookmark
+    )
+
+
+@books_bp.route('/<int:book_id>/pdf', methods=['GET'])
+@login_required
+def serve_pdf(book_id):
+    book = Book.query.get_or_404(book_id)
+    file_path = os.path.abspath(book.file_path)
+    
+    return send_file(
+        file_path, 
+        mimetype='application/pdf',
+        as_attachment=False
+    )

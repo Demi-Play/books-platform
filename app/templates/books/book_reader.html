@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="mui-container book-reader">
+    <div class="mui-panel">
+        <h2>{{ book.title }}</h2>
+        
+        
+        
+        <iframe 
+            id="pdf-viewer"
+            src="{{ url_for('books.serve_pdf', book_id=book.id) }}#page={{ bookmark.page }}" 
+            width="100%" 
+            height="800px" 
+            style="border: none;">
+        </iframe>
+    </div>
+</div>
+
+<!-- PDFKit CDN -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const pdfViewer = document.getElementById('pdf-viewer');
+        const currentPageSpan = document.getElementById('current-page');
+        const saveBookmarkBtn = document.getElementById('save-bookmark');
+    
+        // Получение номера страницы из iframe
+        pdfViewer.addEventListener('load', function() {
+            try {
+                const pageNumber = pdfViewer.contentWindow.PDFViewerApplication.page;
+                currentPageSpan.textContent = pageNumber;
+            } catch (error) {
+                console.error('Не удалось получить номер страницы:', error);
+            }
+        });
+    
+        saveBookmarkBtn.addEventListener('click', function() {
+            const currentPage = currentPageSpan.textContent;
+            console.log(currentPageSpan.textContent)
+            
+            fetch(`/books/{{ book.id }}/bookmark`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ page: currentPage })
+            });
+        });
+    });
+</script>
+{% endblock %}

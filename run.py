@@ -31,7 +31,7 @@ class Config:
     
     # Настройки загрузки файлов
     MAX_CONTENT_LENGTH = 16 * 1024 * 1024  # 16 МБ
-    UPLOAD_FOLDER = os.path.join(os.path.dirname(__file__), 'uploads')
+    UPLOAD_FOLDER = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'app', 'uploads')
 
 def create_app(config_class=Config):
     """Фабрика приложений"""

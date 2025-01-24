@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="mui-container">
+    <div class="mui-panel">
+        <div class="mui-row">
+            <div class="mui-col-md-4">
+                {% if book.cover_image %}
+                    <img src="{{ book.cover_image }}" alt="{{ book.title }}" class="mui-img--responsive">
+                {% else %}
+                    <img src="{{ url_for('static', filename='default_book_cover.jpg') }}" alt="{{ book.title }}" class="mui-img--responsive">
+                {% endif %}
+            </div>
+            
+            <div class="mui-col-md-8">
+                <h2>{{ book.title }}</h2>
+                
+                <div class="book-details">
+                    <p><strong>Автор:</strong> {{ book.author.username }}</p>
+                    <p><strong>Описание:</strong> {{ book.description }}</p>
+                    
+                    <div class="book-genres">
+                        <strong>Жанры:</strong>
+                        {% for genre in book.genres %}
+                            <span class="mui-badge">{{ genre.name }}</span>
+                        {% endfor %}
+                    </div>
+                </div>
+                
+                {% if current_user == book.author %}
+                <div class="book-actions">
+                    <a href="{{ url_for('books.upload_book', book_id=book.id) }}" class="mui-btn mui-btn--primary">
+                        Редактировать
+                    </a>
+                    <button class="mui-btn mui-btn--danger" onclick="deleteBook({{ book.id }})">
+                        Удалить
+                    </button>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <div class="book-read-actions">
+            <a href="{{ url_for('books.read_book', book_id=book.id) }}" class="mui-btn mui-btn--raised">
+                Читать
+            </a>
+            
+            {% if current_user.is_authenticated %}
+            <button class="mui-btn" onclick="addBookmark({{ book.id }})">
+                Добавить закладку
+            </button>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<script>
+function deleteBook(bookId) {
+    if(confirm('Вы уверены, что хотите удалить книгу?')) {
+        fetch(`/books/${bookId}`, {
+            method: 'DELETE'
+        }).then(response => {
+            if(response.ok) {
+                window.location.href = "{{ url_for('books.list_books') }}";
+            }
+        });
+    }
+}
+
+function addBookmark(bookId) {
+    fetch(`/books/${bookId}/bookmark`, {
+        method: 'POST'
+    }).then(response => {
+        if(response.ok) {
+            alert('Закладка добавлена');
+        }
+    });
+}
+</script>
+{% endblock %}

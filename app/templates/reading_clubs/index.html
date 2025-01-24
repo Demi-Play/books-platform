@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="mui-container">
+    <h2>Читательские клубы</h2>
+    
+    <div class="mui-row">
+        {% for club in clubs %}
+        <div class="mui-col-md-4">
+            <div class="mui-panel">
+                <h3>{{ club.name }}</h3>
+                <p>{{ club.description }}</p>
+                <a href="{{ url_for('reading_clubs.club_details', club_id=club.id) }}" class="mui-btn mui-btn--primary">
+                    Подробнее
+                </a>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    {% if current_user.is_authenticated %}
+    <div class="mui-panel">
+        <a href="{{ url_for('reading_clubs.create_club') }}" class="mui-btn mui-btn--raised">
+            Создать клуб
+        </a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

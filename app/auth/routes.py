@@ -1,10 +1,10 @@
 from datetime import datetime
 import os
-from flask import Blueprint, flash, redirect, request, jsonify, render_template, current_app
+from flask import Blueprint, flash, redirect, request, jsonify, render_template, current_app, url_for
 from flask_login import login_user, logout_user, login_required, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
 from .models import User, UserRole, db
-from .forms import RegistrationForm, LoginForm, ProfileUpdateForm
+from .forms import PasswordChangeForm, RegistrationForm, LoginForm, ProfileUpdateForm
 from werkzeug.utils import secure_filename
 
 
@@ -16,7 +16,6 @@ auth_bp = Blueprint('auth', __name__)
 def register():
     form = RegistrationForm(request.form)
     
-    """Регистрация нового пользователя"""
     if request.method == 'POST':
         if form.validate():
             # Проверка существования пользователя
@@ -26,10 +25,8 @@ def register():
             ).first()
             
             if existing_user:
-                return jsonify({
-                    'status': 'error', 
-                    'message': 'Пользователь уже существует'
-                }), 400
+                flash('Пользователь с таким именем или email уже существует', 'error')
+                return redirect(url_for('auth.register'))
             
             # Создание нового пользователя
             new_user = User(
@@ -42,14 +39,15 @@ def register():
             db.session.add(new_user)
             db.session.commit()
             
-            flash('Успешный вход!')
-            return render_template('/auth/profile.html')
+            flash('Регистрация прошла успешно!', 'success')
+            return redirect(url_for('auth.login'))
         
-        flash(form.errors)
-        return jsonify({
-            'status': 'error', 
-            'errors': form.errors
-        }), 400
+        # Обработка ошибок валидации
+        for field, errors in form.errors.items():
+            for error in errors:
+                flash(f'{getattr(form, field).label.text}: {error}', 'error')
+        
+        return render_template('auth/register.html', form=form)
     
     return render_template('auth/register.html', form=form)
 
@@ -57,7 +55,6 @@ def register():
 def login():
     form = LoginForm(request.form)
     
-    """Аутентификация пользователя"""
     if request.method == 'POST':
         if form.validate():
             user = User.query.filter_by(email=form.email.data).first()
@@ -67,48 +64,34 @@ def login():
                 user.last_login = datetime.now()
                 db.session.commit()
                 
-                flash('Успешный вход!')
-                return redirect('profile')
+                flash('Вход выполнен успешно!', 'success')
+                return redirect(url_for('user.dashboard'))
             
-            return jsonify({
-                'status': 'error', 
-                'message': 'Неверный email или пароль'
-            }), 401
+            flash('Неверный email или пароль', 'error')
+            return redirect(url_for('auth.login'))
         
-        return jsonify({
-            'status': 'error', 
-            'errors': form.errors
-        }), 400
+        # Обработка ошибок валидации
+        for field, errors in form.errors.items():
+            for error in errors:
+                flash(f'{getattr(form, field).label.text}: {error}', 'error')
+        
+        return render_template('auth/login.html', form=form)
     
     return render_template('auth/login.html', form=form)
 
 @auth_bp.route('/logout')
 @login_required
 def logout():
-    """Выход пользователя"""
     logout_user()
-    return jsonify({
-        'status': 'success', 
-        'message': 'Выход выполнен'
-    }), 200
+    flash('Вы успешно вышли из системы', 'success')
+    return redirect(url_for('main.index'))
 
-@auth_bp.route('/profile', methods=['GET', 'PUT'])
+@auth_bp.route('/profile', methods=['GET', 'POST'])
 @login_required
 def profile():
     form = ProfileUpdateForm(request.form)
-    """Управление профилем пользователя"""
-    if request.method == 'GET':
-        return jsonify({
-            'id': current_user.id,
-            'username': current_user.username,
-            'email': current_user.email,
-            'first_name': current_user.first_name,
-            'last_name': current_user.last_name,
-            'bio': current_user.bio
-        }), 200
     
-    elif request.method == 'PUT':
-        form = ProfileUpdateForm(request.form)
+    if request.method == 'POST':
         if form.validate():
             current_user.first_name = form.first_name.data
             current_user.last_name = form.last_name.data
@@ -124,39 +107,40 @@ def profile():
             
             db.session.commit()
             
-            return jsonify({
-                'status': 'success', 
-                'message': 'Профиль обновлен'
-            }), 200
+            flash('Профиль успешно обновлен', 'success')
+            return redirect(url_for('auth.profile'))
         
-        return jsonify({
-            'status': 'error', 
-            'errors': form.errors
-        }), 400
+        # Обработка ошибок валидации
+        for field, errors in form.errors.items():
+            for error in errors:
+                flash(f'{getattr(form, field).label.text}: {error}', 'error')
+        
+        return render_template('auth/profile.html', form=form)
+    
+    return render_template('auth/profile.html', form=form)
 
-@auth_bp.route('/change-password', methods=['PUT'])
+@auth_bp.route('/change-password', methods=['GET', 'POST'])
 @login_required
 def change_password():
-    """Смена пароля"""
-    old_password = request.json.get('old_password')
-    new_password = request.json.get('new_password')
+    form = PasswordChangeForm(request.form)
     
-    if not old_password or not new_password:
-        return jsonify({
-            'status': 'error', 
-            'message': 'Необходимо указать старый и новый пароли'
-        }), 400
+    if request.method == 'POST':
+        if form.validate():
+            if not current_user.check_password(form.old_password.data):
+                flash('Неверный текущий пароль', 'error')
+                return redirect(url_for('auth.change_password'))
+            
+            current_user.set_password(form.new_password.data)
+            db.session.commit()
+            
+            flash('Пароль успешно изменен', 'success')
+            return redirect(url_for('user.dashboard'))
+        
+        # Обработка ошибок валидации
+        for field, errors in form.errors.items():
+            for error in errors:
+                flash(f'{getattr(form, field).label.text}: {error}', 'error')
+        
+        return render_template('auth/change_password.html', form=form)
     
-    if not current_user.check_password(old_password):
-        return jsonify({
-            'status': 'error', 
-            'message': 'Неверный текущий пароль'
-        }), 400
-    
-    current_user.set_password(new_password)
-    db.session.commit()
-    
-    return jsonify({
-        'status': 'success', 
-        'message': 'Пароль успешно изменен'
-    }), 200
+    return render_template('auth/change_password.html', form=form)
