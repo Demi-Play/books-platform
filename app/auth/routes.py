@@ -59,18 +59,48 @@ def login():
         if form.validate():
             user = User.query.filter_by(email=form.email.data).first()
             
-            if user and user.check_password(form.password.data):
+            # Проверка существования пользователя
+            if not user:
+                flash('Пользователь не найден', 'error')
+                return redirect(url_for('auth.login'))
+            
+            # Проверка блокировки
+            if not user.is_active:
+                if user.blocked_until:
+                    remaining_time = user.blocked_until - datetime.now()
+                    hours, remainder = divmod(remaining_time.seconds, 3600)
+                    minutes, _ = divmod(remainder, 60)
+                    
+                    flash(
+                        f'Аккаунт заблокирован до {user.blocked_until}. '
+                        f'Причина: {user.block_reason or "Не указана"}. '
+                        f'Осталось: {hours} ч. {minutes} мин.', 
+                        'error'
+                    )
+                else:
+                    flash('Аккаунт деактивирован', 'error')
+                
+                return redirect(url_for('auth.login'))
+            
+            # Проверка пароля
+            if user.check_password(form.password.data):
+                # Успешный вход
                 login_user(user, remember=form.remember.data)
-                user.last_login = datetime.now()
+                
+                # Обновление метаданных
+                user.last_login = datetime.utcnow()
+                user.failed_login_attempts = 0  # Сброс счетчика неудачных входов
                 db.session.commit()
                 
                 flash('Вход выполнен успешно!', 'success')
                 return redirect(url_for('user.dashboard'))
             
+            # Неверный пароль
+            user.increment_failed_login()
             flash('Неверный email или пароль', 'error')
             return redirect(url_for('auth.login'))
         
-        # Обработка ошибок валидации
+        # Обработка ошибок валидации формы
         for field, errors in form.errors.items():
             for error in errors:
                 flash(f'{getattr(form, field).label.text}: {error}', 'error')
@@ -78,6 +108,7 @@ def login():
         return render_template('auth/login.html', form=form)
     
     return render_template('auth/login.html', form=form)
+
 
 @auth_bp.route('/logout')
 @login_required

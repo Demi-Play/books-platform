@@ -52,11 +52,66 @@ def roles_required(*roles):
         return decorated_function
     return decorator
     
-@admin_bp.route('/users')
+@admin_bp.route('/users', methods=['GET'])
 @roles_required(UserRole.ADMIN)
 def manage_users():
     users = User.query.all()
-    return render_template('admin/users.html', users=users)
+    return render_template(
+        'admin/users.html', 
+        users=users, 
+        roles=list(UserRole)
+    )
+
+@admin_bp.route('/users/update', methods=['POST'])
+@roles_required(UserRole.ADMIN)
+def update_users():
+    for user in User.query.all():
+        # Обновление роли
+        role_key = f'role_{user.id}'
+        active_key = f'active_{user.id}'
+        
+        if role_key in request.form:
+            try:
+                user.role = UserRole(request.form[role_key])
+            except ValueError:
+                flash(f'Некорректная роль для пользователя {user.username}', 'error')
+        
+        # Обновление статуса активности
+        user.is_active_status = active_key in request.form
+    
+    try:
+        db.session.commit()
+        flash('Информация о пользователях обновлена', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Ошибка обновления: {str(e)}', 'error')
+    
+    return redirect(url_for('admin.manage_users'))
+
+@admin_bp.route('/users/block', methods=['POST'])  # Изменен маршрут
+@roles_required(UserRole.ADMIN)
+def block_user():
+    user_id = request.form.get('user_id')
+    duration = request.form.get('duration', type=int, default=24)
+    reason = request.form.get('reason')
+    
+    user = User.query.get_or_404(user_id)
+    
+    # Блокировка или разблокировка
+    if user.blocked_until:
+        user.unblock()
+        flash(f'Пользователь {user.username} разблокирован', 'success')
+    else:
+        user.block(duration=duration, reason=reason)
+        flash(
+            f'Пользователь {user.username} заблокирован на {duration} часов. '
+            f'Причина: {reason}', 
+            'warning'
+        )
+    
+    return redirect(url_for('admin.manage_users'))
+
+
 
 @author_bp.route('/dashboard/author')
 @login_required
@@ -77,13 +132,6 @@ def author_dashboard():
         book_stats=book_stats
     )
 
-@admin_bp.route('/users/<int:user_id>/edit', methods=['POST'])
-@roles_required(UserRole.ADMIN)
-def edit_user(user_id):
-    user = User.query.get_or_404(user_id)
-    user.role = request.form.get('role')
-    user.is_active = request.form.get('is_active', type=bool)
-    db.session.commit()
     
 @moderator_bp.route('/publications')
 @roles_required(UserRole.MODERATOR)

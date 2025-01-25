@@ -1,44 +1,141 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="container admin-panel">
-    <h1>Управление пользователями</h1>
-    <table class="table">
-        <thead>
-            <tr>
-                <th>ID</th>
-                <th>Имя пользователя</th>
-                <th>Email</th>
-                <th>Роль</th>
-                <th>Действия</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for user in users %}
-            <tr>
-                <td>{{ user.id }}</td>
-                <td>{{ user.username }}</td>
-                <td>{{ user.email }}</td>
-                <td>
-                    <select class="form-control role-select" data-user-id="{{ user.id }}">
-                        {% for role in UserRole %}
-                        <option 
-                            value="{{ role.value }}" 
-                            {% if user.role == role %}selected{% endif %}
+<div class="mui-container">
+    <div class="mui-panel">
+        <h1>Управление пользователями</h1>
+        
+        <form method="POST" action="{{ url_for('admin.update_users') }}">
+            <table class="mui-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Имя пользователя</th>
+                        <th>Email</th>
+                        <th>Роль</th>
+                        <th>Статус</th>
+                        <th>Блокировка</th>
+                        <th>Действия</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for user in users %}
+                    <tr>
+                        <td>{{ user.id }}</td>
+                        <td>{{ user.username }}</td>
+                        <td>{{ user.email }}</td>
+                        <td>
+                            <select 
+                                name="role_{{ user.id }}" 
+                                class="mui-select"
+                            >
+                                {% for role in roles %}
+                                <option 
+                                    value="{{ role.value }}"
+                                    {% if user.role == role %}selected{% endif %}
+                                >
+                                    {{ role.value }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </td>
+                        <td>
+                            <label class="mui-checkbox">
+                                <input 
+                                    type="checkbox" 
+                                    name="active_{{ user.id }}"
+                                    {% if user.is_active_status %}checked{% endif %}
+                                >
+                                <span>Активен</span>
+                            </label>
+                        </td>
+                        <td>
+                            {% if user.blocked_until %}
+                                До: {{ user.blocked_until.strftime('%d.%m.%Y %H:%M') }}
+                                <br>
+                                Причина: {{ user.block_reason or 'Не указана' }}
+                            {% else %}
+                                Нет блокировки
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div class="mui-btn-group">
+                                <button 
+                                    type="button" 
+                                    class="mui-btn mui-btn--primary"
+                                    onclick="openBlockModal({{ user.id }})"
+                                >
+                                    {{ 'Разблокировать' if user.blocked_until else 'Заблокировать' }}
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            
+            <div class="mui-row">
+                <button type="submit" class="mui-btn mui-btn--primary">
+                    Сохранить изменения
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+
+<!-- Модальное окно блокировки -->
+<div id="blockModal" class="mui-modal">
+    <div class="mui-modal-dialog">
+        <form 
+                method="POST" 
+                id="blockForm" 
+                action="{{ url_for('admin.block_user') }}"
+            >
+            <div class="mui-modal-content">
+                <div class="mui-modal-header">
+                    <h3>Блокировка пользователя</h3>
+                </div>
+                <div class="mui-modal-body">
+                    <input type="hidden" name="user_id" id="blockUserId">
+                    
+                    <div class="mui-textfield">
+                        <label>Длительность блокировки (часов)</label>
+                        <input 
+                            type="number" 
+                            name="duration" 
+                            value="24" 
+                            min="1"
                         >
-                            {{ role.value }}
-                        </option>
-                        {% endfor %}
-                    </select>
-                </td>
-                <td>
-                    <button class="btn btn-danger block-user" data-user-id="{{ user.id }}">
+                    </div>
+                    
+                    <div class="mui-textfield">
+                        <label>Причина блокировки</label>
+                        <textarea 
+                            name="reason" 
+                            placeholder="Причина блокировки"
+                        ></textarea>
+                    </div>
+                </div>
+                <div class="mui-modal-footer">
+                    <button 
+                        type="submit" 
+                        class="mui-btn mui-btn--primary"
+                    >
                         Заблокировать
                     </button>
-                </td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+                    <button 
+                        type="button" 
+                        class="mui-btn mui-btn--flat" 
+                        onclick="closeBlockModal()"
+                    >
+                        Отмена
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
 </div>
+<script src="{{ url_for('static', filename='js/admin.js') }}"></script>
+
 {% endblock %}
