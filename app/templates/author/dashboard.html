@@ -1,0 +1,104 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="mui-container">
+    <h1>Панель автора</h1>
+    
+    <div class="mui-row">
+        <div class="mui-col-md-6">
+            <div class="mui-panel" style="max-height: 250px;">
+                <canvas id="booksChart"></canvas>
+            </div>
+        </div>
+        <div class="mui-col-md-6">
+            <div class="mui-panel" style="max-height: 250px;">
+                <canvas id="likesChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Круговая диаграмма книг
+            new Chart(document.getElementById('booksChart'), {
+                type: 'pie',
+                data: {
+                    labels: ['Опубликовано', 'В ожидании', 'Отклонено'],
+                    datasets: [{
+                        data: [
+                            {{ book_stats.published_books }}, 
+                            {{ book_stats.pending_books }}, 
+                            {{ book_stats.draft_books }}
+                        ],
+                        backgroundColor: [
+                            'rgba(75, 192, 192, 0.6)',
+                            'rgba(255, 206, 86, 0.6)', 
+                            'rgba(255, 99, 132, 0.6)'
+                        ]
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    title: {
+                        display: true,
+                        text: 'Статус моих книг'
+                    }
+                }
+            });
+        
+            // Столбчатая диаграмма лайков
+            new Chart(document.getElementById('likesChart'), {
+                type: 'bar',
+                data: {
+                    labels: [{% for book in books %}'{{ book.title }}',{% endfor %}],
+                    datasets: [{
+                        label: 'Лайки',
+                        data: [{% for book in books %}{{ book.likes|length }},{% endfor %}],
+                        backgroundColor: 'rgba(54, 162, 235, 0.6)'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    },
+                    title: {
+                        display: true,
+                        text: 'Лайки по книгам'
+                    }
+                }
+            });
+        });
+        </script>
+
+    <h2>Мои книги</h2>
+    <div class="book-grid mui-row">
+        {% for book in books %}
+        <div class="book-card mui-col-md-4 mui-panel">
+            <img src="{{ url_for('static', filename='default_cover.jpg') }}" style="max-width: 100%;">
+            <h3>{{ book.title }}</h3>
+            <h4>Текущий статус: 
+                {% if book.status == 'pending' %}
+                Ожидает подтверждения
+                {% elif book.status == 'approved' %}
+                Опубликован
+                {% elif book.status == 'rejected' %}
+                Публикация отклонена
+                {% endif %}
+            </h4>
+            <div class="book-actions">
+                <a href="{{ url_for('books.edit_book', book_id=book.id) }}" class="mui-btn btn-primary">
+                    Редактировать
+                </a>
+                <button class="mui-btn mui-btn--danger" data-book-id="{{ book.id }}">
+                    Удалить
+                </button>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

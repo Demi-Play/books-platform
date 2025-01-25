@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="mui-container">
+    <div class="mui-panel">
+        <h1>Модерация публикаций</h1>
+        <div class="book-grid">
+            {% for book in books %}
+            <div class="mui-panel book-card">
+                <h3>{{ book.title }}</h3>
+                <p>{{ book.description[:200] }}</p>
+                <p>Текущий статус: 
+                    {% if book.status == 'pending' %}
+                    Ожидает подтверждения
+                    {% elif book.status == 'approved' %}
+                    Опубликован
+                    {% elif book.status == 'rejected' %}
+                    Публикация отклонена
+                    {% endif %}
+                </p>
+                <div class="book-actions">
+                    <button 
+                        class="mui-btn mui-btn--success approve-book" 
+                        data-book-id="{{ book.id }}"
+                    >
+                        Одобрить
+                    </button>
+                    <button 
+                        class="mui-btn mui-btn--danger reject-book" 
+                        data-book-id="{{ book.id }}"
+                    >
+                        Отклонить
+                    </button>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<script src="{{ url_for('static', filename='js/publication.js') }}"></script>
+
+{% endblock %}

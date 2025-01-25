@@ -42,13 +42,6 @@ class User(db.Model, UserMixin):
 
     def check_password(self, password):
         return check_password_hash(self.password_hash, password)
-
-    # @property
-    # def is_active(self):
-    #     return True
-    
-    # def get_id(self):
-    #     return self.id
     
     def __repr__(self):
         return f'<User {self.username}>'

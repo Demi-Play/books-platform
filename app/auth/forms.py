@@ -44,9 +44,9 @@ class ProfileUpdateForm(FlaskForm):
         Optional(),
         Length(max=500, message='Максимум 500 символов')
     ])
-    avatar = FileField('Аватар', [
-        Optional()
-    ])
+    # avatar = FileField('Аватар', [
+    #     Optional()
+    # ])
 
 class PasswordChangeForm(FlaskForm):
     """Форма смены пароля"""

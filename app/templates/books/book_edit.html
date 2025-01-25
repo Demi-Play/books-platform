@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="mui-panel">
+    
+    <h1>Редактирование книги: {{ book.title }}</h1>
+    
+    <form method="POST" enctype="multipart/form-data" class="mui-form">
+        {{ form.hidden_tag() }}
+        
+        <div class="mui-textfield">
+            {{ form.title.label }}
+            {{ form.title(class="form-control") }}
+        </div>
+        
+        <div class="mui-textfield">
+            {{ form.description.label }}
+            {{ form.description(class="form-control") }}
+        </div>
+        
+        <div class="mui-select">
+            {{ form.genres.label }}
+            {{ form.genres(class="form-control") }}
+        </div>
+        
+        <button type="submit" class="mui-btn mui-btn--primary">Сохранить изменения</button>
+    </form>
+</div>
+{% endblock %}

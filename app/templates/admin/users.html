@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container admin-panel">
+    <h1>Управление пользователями</h1>
+    <table class="table">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Имя пользователя</th>
+                <th>Email</th>
+                <th>Роль</th>
+                <th>Действия</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for user in users %}
+            <tr>
+                <td>{{ user.id }}</td>
+                <td>{{ user.username }}</td>
+                <td>{{ user.email }}</td>
+                <td>
+                    <select class="form-control role-select" data-user-id="{{ user.id }}">
+                        {% for role in UserRole %}
+                        <option 
+                            value="{{ role.value }}" 
+                            {% if user.role == role %}selected{% endif %}
+                        >
+                            {{ role.value }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </td>
+                <td>
+                    <button class="btn btn-danger block-user" data-user-id="{{ user.id }}">
+                        Заблокировать
+                    </button>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

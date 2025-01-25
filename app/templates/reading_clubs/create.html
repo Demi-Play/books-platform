@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="mui-container">
+    <div class="mui-panel">
+        <h2>Создание читательского клуба</h2>
+        
+        <form method="POST" class="mui-form">
+            <div class="mui-textfield">
+                <input type="text" name="name" required placeholder="Название клуба">
+            </div>
+            
+            <div class="mui-textfield">
+                <textarea name="description" placeholder="Описание клуба"></textarea>
+            </div>
+            
+            <button type="submit" class="mui-btn mui-btn--primary">
+                Создать клуб
+            </button>
+        </form>
+    </div>
+</div>
+{% endblock %}

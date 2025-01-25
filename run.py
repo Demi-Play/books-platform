@@ -1,5 +1,5 @@
 import os
-from flask import Flask
+from flask import Flask, current_app
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from flask_login import LoginManager
@@ -15,6 +15,9 @@ from app.auth.routes import auth_bp
 from app.books.routes import books_bp
 from app.main.routes import main_bp
 from app.user.routes import user_bp
+from app.user.routes import admin_bp
+from app.user.routes import moderator_bp
+from app.user.routes import author_bp
 from app.reading_clubs.routes import reading_clubs_bp
 
 class Config:
@@ -59,6 +62,9 @@ def create_app(config_class=Config):
     app.register_blueprint(auth_bp, url_prefix='/auth')
     app.register_blueprint(books_bp, url_prefix='/books')
     app.register_blueprint(user_bp, url_prefix='/user')
+    app.register_blueprint(admin_bp, url_prefix='/admin')
+    app.register_blueprint(author_bp, url_prefix='/author')
+    app.register_blueprint(moderator_bp, url_prefix='/moderator')
     app.register_blueprint(reading_clubs_bp, url_prefix='/clubs')
     
     
@@ -99,6 +105,16 @@ def run_app():
         level=logging.INFO,
         format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
     )
+    
+    from flask import send_from_directory
+
+    # Добавить маршрут для обслуживания файлов из uploads
+    @app.route('/uploads/<path:filename>')
+    def serve_uploaded_file(filename):
+        return send_from_directory(
+            os.path.join(current_app.root_path, 'uploads'), 
+            filename
+        )
     
     # Запуск приложения
     app.run(

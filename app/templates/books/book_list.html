@@ -6,7 +6,7 @@
     <div class="book-grid">
         {% for book in books %}
         <div class="mui-panel book-card">
-            <img src="{{ book.cover_image or url_for('static', filename='default_cover.jpg') }}" alt="{{ book.title }}">
+            <img src="{{ url_for('static', filename='default_cover.jpg') }}" style="width: 10%;" alt="{{ book.title }}">
             <h3>{{ book.title }}</h3>
             <p>{{ book.description[:100] }}...</p>
             <a href="{{ url_for('books.book_details', book_id=book.id) }}" class="mui-btn mui-btn--small">Читать</a>

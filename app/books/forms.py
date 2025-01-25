@@ -17,10 +17,10 @@ class BookUploadForm(FlaskForm):
         FileRequired(message='Файл книги обязателен'),
         FileAllowed(['pdf', 'epub', 'mobi'], message='Неподдерживаемый формат файла')
     ])
-    cover_image = FileField('Обложка', [
-        Optional(),
-        FileAllowed(['jpg', 'png', 'jpeg'], message='Только изображения')
-    ])
+    # cover_image = FileField('Обложка', [
+    #     Optional(),
+    #     FileAllowed(['jpg', 'png', 'jpeg'], message='Только изображения')
+    # ])
     genres = SelectMultipleField('Жанры', 
         coerce=int,
         validators=[Optional()]

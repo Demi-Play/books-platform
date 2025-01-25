@@ -97,13 +97,13 @@ def profile():
             current_user.last_name = form.last_name.data
             current_user.bio = form.bio.data
             
-            if form.avatar.data:
-                # Логика загрузки аватара
-                avatar_file = request.files['avatar']
-                filename = secure_filename(avatar_file.filename)
-                avatar_path = os.path.join(current_app.config['UPLOAD_FOLDER'], 'avatars', filename)
-                avatar_file.save(avatar_path)
-                current_user.avatar = avatar_path
+            # if form.avatar.data:
+            #     # Логика загрузки аватара
+            #     avatar_file = request.files['avatar']
+            #     filename = secure_filename(avatar_file.filename)
+            #     avatar_path = os.path.join(current_app.config['UPLOAD_FOLDER'], 'avatars', filename)
+            #     avatar_file.save(avatar_path)
+            #     current_user.avatar = avatar_path
             
             db.session.commit()
             

@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="mui-container">
+    <div class="mui-panel">
+        <h2>{{ club.name }}</h2>
+        <p>{{ club.description }}</p>
+        
+        <div class="club-members">
+            <h3 onclick="toggleMembersList()">
+                Участники ({{ club.members|length }}) 
+                <span  style="color:blue;" id="members-toggle-icon">▼</span>
+            </h3>
+            <div id="members-list" style="display: none;">
+                {% for member in club.members %}
+                    <span>{{ member.username }}</span>
+                {% endfor %}
+            </div>
+        </div>
+        
+        {% if current_user.is_authenticated %}
+            {% if is_member %}
+                <a href="{{ url_for('reading_clubs.leave_club', club_id=club.id) }}" 
+                   class="mui-btn mui-btn--danger">
+                    Покинуть клуб
+                </a>
+            {% else %}
+                <a href="{{ url_for('reading_clubs.join_club', club_id=club.id) }}" 
+                   class="mui-btn mui-btn--primary">
+                    Вступить в клуб
+                </a>
+            {% endif %}
+        {% endif %}
+    </div>
+    <script src="{{ url_for('static', filename='js/read_club_detail.js') }}"></script>
+</div>
+{% endblock %}

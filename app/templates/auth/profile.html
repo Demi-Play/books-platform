@@ -23,12 +23,12 @@
                 <label>О себе</label>
             </div>
 
-            <div class="mui-file">
-                {{ form.avatar }}
-                <label>Аватар</label>
-            </div>
+            
 
             <button type="submit" class="mui-btn mui-btn--primary">Обновить профиль</button>
+            <a href="{{ url_for('auth.change_password') }}"  class="mui-btn">
+                Сменить пароль
+            </a>
         </form>
     </div>
 </div>

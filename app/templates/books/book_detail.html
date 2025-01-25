@@ -6,9 +6,9 @@
         <div class="mui-row">
             <div class="mui-col-md-4">
                 {% if book.cover_image %}
-                    <img src="{{ book.cover_image }}" alt="{{ book.title }}" class="mui-img--responsive">
+                    <img src="{{ url_for('static', filename='default_cover.jpg') }}" alt="{{ book.title }}" style="position:relative; max-width: 100%;" class="mui-img--responsive">
                 {% else %}
-                    <img src="{{ url_for('static', filename='default_book_cover.jpg') }}" alt="{{ book.title }}" class="mui-img--responsive">
+                    <img src="{{ url_for('static', filename='default_cover.jpg') }}" alt="{{ book.title }}" style="max-width: 100%;" class="mui-img--responsive">
                 {% endif %}
             </div>
             
@@ -29,7 +29,7 @@
                 
                 {% if current_user == book.author %}
                 <div class="book-actions">
-                    <a href="{{ url_for('books.upload_book', book_id=book.id) }}" class="mui-btn mui-btn--primary">
+                    <a href="{{ url_for('books.edit_book', book_id=book.id) }}" class="mui-btn mui-btn--primary">
                         Редактировать
                     </a>
                     <button class="mui-btn mui-btn--danger" onclick="deleteBook({{ book.id }})">
@@ -46,35 +46,62 @@
             </a>
             
             {% if current_user.is_authenticated %}
-            <button class="mui-btn" onclick="addBookmark({{ book.id }})">
-                Добавить закладку
+            <button 
+                id="bookmark-button" 
+                class="mui-btn {{ 'bookmark-active' if user_bookmark else '' }}"
+                onclick="toggleBookmark({{ book.id }}, {{ user_bookmark.page if user_bookmark else 1 }})"
+            >
+                {{ 'Удалить закладку' if user_bookmark else 'Добавить закладку' }}
             </button>
             {% endif %}
+        </div>
+
+        <div class="book-interactions">
+            <div class="likes-section">
+                <button 
+                    id="like-button" 
+                    onclick="toggleLike({{ book.id }})"
+                    class="{{ 'liked' if current_user_liked else '' }}"
+                >
+                    ❤️ {{ book.likes|length }}
+                </button>
+            </div>
+            
+            <div class="comments-section">
+                <h3>Комментарии</h3>
+                
+                {% if current_user.is_authenticated %}
+                <form id="comment-form" onsubmit="addComment(event, {{ book.id }})">
+                    <textarea 
+                        id="comment-text" 
+                        placeholder="Напишите комментарий"
+                    ></textarea>
+                    <button type="submit">Отправить</button>
+                </form>
+                {% endif %}
+                
+                <div id="comments-list" class="mui-panel">
+                    {% for comment in book.comments %}
+                    <div class="comment" id="comment-{{ comment.id }}">
+                        <p>{{ comment.text }}</p>
+                        <small>{{ comment.username.username }} | {{ comment.created_at.strftime("%H:%M %d.%m.%Y") }}</small>
+                        
+                        {% if current_user == comment.author %}
+                        <div class="comment-actions">
+                            <button onclick="editComment({{ comment.id }})">Редактировать</button>
+                            <button onclick="deleteComment({{ comment.id }})">Удалить</button>
+                        </div>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
         </div>
     </div>
 </div>
 
-<script>
-function deleteBook(bookId) {
-    if(confirm('Вы уверены, что хотите удалить книгу?')) {
-        fetch(`/books/${bookId}`, {
-            method: 'DELETE'
-        }).then(response => {
-            if(response.ok) {
-                window.location.href = "{{ url_for('books.list_books') }}";
-            }
-        });
-    }
-}
+<script src="{{ url_for('static', filename='js/book_detail.js') }}"></script>
 
-function addBookmark(bookId) {
-    fetch(`/books/${bookId}/bookmark`, {
-        method: 'POST'
-    }).then(response => {
-        if(response.ok) {
-            alert('Закладка добавлена');
-        }
-    });
-}
-</script>
+</div>
+</div>
 {% endblock %}

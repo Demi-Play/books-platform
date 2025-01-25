@@ -5,12 +5,19 @@
     <div class="mui-panel">
         <h2>Личный кабинет</h2>
         
-        <div class="mui-row">
+        <div class="mui-row" style="display: flex; flex-wrap: wrap;">
+            <!-- Существующие карточки -->
             <div class="mui-col-md-4">
                 <div class="mui-panel">
                     <h3>Мой профиль</h3>
-                    <p>{{ current_user.username }}</p>
-                    <p>{{ current_user.email }}</p>
+                    <p>nick: {{ current_user.username }}</p>
+                    <p>mail: {{ current_user.email }}</p>
+                    {% if current_user.first_name != None and current_user.last_name != None %}
+                    <p>Имя и фамилия: {{ current_user.first_name }} {{ current_user.last_name }}</p>
+                    {% endif %}
+                    {% if current_user.bio != None %}
+                    <p>Био: {{ current_user.bio }}</p>
+                    {% endif %}
                     <a href="{{ url_for('auth.profile') }}" class="mui-btn mui-btn--primary">Редактировать</a>
                 </div>
             </div>
@@ -19,11 +26,11 @@
                 <div class="mui-panel">
                     <h3>Мои книги</h3>
                     {% if uploaded_books %}
-                        <ul>
+                        <ol>
                         {% for book in uploaded_books %}
                             <li>{{ book.title }}</li>
                         {% endfor %}
-                        </ul>
+                        </ol>
                     {% else %}
                         <p>Вы еще не загрузили книг</p>
                     {% endif %}
@@ -31,21 +38,57 @@
                 </div>
             </div>
             
+            
+
+            <!-- Новые карточки для панелей управления -->
+            {% if current_user.role == UserRole.ADMIN %}
             <div class="mui-col-md-4">
                 <div class="mui-panel">
+                    <h3>Администрирование</h3>
+                    <p>Управление пользователями и системой</p>
+                    <a href="{{ url_for('admin.manage_users') }}" class="mui-btn mui-btn--primary">
+                        Панель администратора
+                    </a>
+                </div>
+            </div>
+            {% endif %}
+
+            {% if current_user.role == UserRole.MODERATOR %}
+            <div class="mui-col-md-4">
+                <div class="mui-panel">
+                    <h3>Модерация</h3>
+                    <p>Проверка и публикация контента</p>
+                    <a href="{{ url_for('moderator.manage_publications') }}" class="mui-btn mui-btn--primary">
+                        Панель модератора
+                    </a>
+                </div>
+            </div>
+            {% endif %}
+
+            <div class="mui-col-md-4">
+                <div class="mui-panel">
+                    <h3>Авторская панель</h3>
+                    <p>Статистика и управление книгами</p>
+                    <a href="{{ url_for('author.author_dashboard') }}" class="mui-btn mui-btn--primary">
+                        Панель автора
+                    </a>
+                </div>
+            </div>
+            <div class="mui-col-md-4" style="width: 100%;">
+                <div class="mui-panel" style="overflow: hidden;">
                     <h3>Закладки</h3>
                     {% if bookmarks %}
-                        <ul>
+                        <div class="mui-col-md-4">
                         {% for bookmark in bookmarks %}
-                            <li>
+                                <a href="{{ url_for('books.read_book', book_id=bookmark.book.id) }}" class="mui-btn mui-btn--primary">
                                 {{ bookmark.book.title }} 
-                                (Страница {{ bookmark.page }})
-                            </li>
+                                </a>
                         {% endfor %}
-                        </ul>
+                        </div>
                     {% else %}
                         <p>У вас пока нет закладок</p>
                     {% endif %}
+                        </div>
                 </div>
             </div>
         </div>
