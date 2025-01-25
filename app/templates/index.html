@@ -1,30 +1,136 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="mui-container">
-    <h1>Добро пожаловать на платформу книг</h1>
-    
-    <div class="mui-row">
+<div class="mui-container homepage">
+    <header class="hero-section">
+        <div class="hero-content">
+            <h1>Откройте мир книг вместе с нами</h1>
+            <p>Читайте, обсуждайте, делитесь впечатлениями</p>
+            {% if not current_user.is_authenticated %}
+            <div class="hero-cta">
+                <a href="{{ url_for('auth.register') }}" class="mui-btn mui-btn--raised mui-btn--primary">
+                    Регистрация
+                </a>
+                <a href="{{ url_for('auth.login') }}" class="mui-btn mui-btn--flat">
+                    Войти
+                </a>
+            </div>
+            {% endif %}
+        </div>
+    </header>
+
+    <section class="features-section mui-row">
         <div class="mui-col-md-4">
-            <div class="mui-panel">
+            <div class="feature-card">
+                <i class="fas fa-book"></i>
                 <h3>Новые книги</h3>
-                <a href="{{ url_for('books.list_books') }}" class="mui-btn mui-btn--primary">Перейти</a>
+                <p>Последние поступления от талантливых авторов</p>
+                <a href="{{ url_for('books.list_books') }}" class="mui-btn mui-btn--primary">
+                    Смотреть
+                </a>
             </div>
         </div>
         
         <div class="mui-col-md-4">
-            <div class="mui-panel">
-                <h3>Популярные</h3>
-                <a href="{{ url_for('books.list_books', sort='popular') }}" class="mui-btn mui-btn--primary">Перейти</a>
-            </div>
-        </div>
-        
-        <div class="mui-col-md-4">
-            <div class="mui-panel">
+            <div class="feature-card">
+                <i class="fas fa-users"></i>
                 <h3>Читательские клубы</h3>
-                <a href="{{ url_for('reading_clubs.index') }}" class="mui-btn mui-btn--primary">Перейти</a>
+                <p>Обсуждайте книги с единомышленниками</p>
+                <a href="{{ url_for('reading_clubs.index') }}" class="mui-btn mui-btn--primary">
+                    Присоединиться
+                </a>
             </div>
         </div>
-    </div>
+        
+        <div class="mui-col-md-4">
+            <div class="feature-card">
+                <i class="fas fa-chart-line"></i>
+                <h3>Популярные книги</h3>
+                <p>Рейтинг самых востребованных изданий</p>
+                <a href="{{ url_for('books.list_books', sort='popular') }}" class="mui-btn mui-btn--primary">
+                    Смотреть
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <section class="trending-books mui-row">
+        <div class="mui-col-md-12">
+    <section class="hero-section" style="max-height: 10px; padding-top: 5px;">
+        <h2 class="hero-content">Сейчас в тренде</h2>
+    </section>
+    <div class="book-carousel">
+                {% for book in trending_books %}
+                <div class="book-card">
+                    <img src="{{ url_for('static', filename='default_cover.jpg') }}" style="max-width: 5%;" alt="{{ book.title }}">
+                    <h4>{{ book.title }}</h4>
+                    <p>{{ book.author.username }}</p>
+                    <a href="{{ url_for('books.book_details', book_id=book.id) }}" class="mui-btn mui-btn--small">
+                        Подробнее
+                    </a>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </section>
+    <section class="hero-section" style="max-height: 10px; padding-top: 5px;">
+    <h2 class="hero-content">О платформе</h2>
+    </section>
+    <section class="stats-section mui-row">
+        <div class="mui-col-md-4">
+            <div class="stat-card">
+                <h3>{{ total_books }}</h3>
+                <p>Книг в библиотеке</p>
+            </div>
+        </div>
+        <div class="mui-col-md-4">
+            <div class="stat-card">
+                <h3>{{ total_users }}</h3>
+                <p>Пользователей</p>
+            </div>
+        </div>
+        <div class="mui-col-md-4">
+            <div class="stat-card">
+                <h3>{{ total_clubs }}</h3>
+                <p>Читательских клубов</p>
+            </div>
+        </div>
+    </section>
 </div>
+
+<style>
+.homepage {
+    text-align: center;
+}
+
+.hero-section {
+    background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+    color: white;
+    padding: 4rem 0;
+    margin-bottom: 2rem;
+}
+
+.feature-card, .stat-card {
+    background: white;
+    border-radius: 10px;
+    padding: 1.5rem;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    margin-bottom: 1rem;
+}
+
+.book-carousel {
+    display: flex;
+    overflow-x: auto;
+    gap: 1rem;
+}
+
+.book-card img {
+    max-width: 150px;
+    border-radius: 5px;
+}
+.mui-container {
+    padding-left: 0; 
+    padding-right: 0;
+}
+</style>
 {% endblock %}

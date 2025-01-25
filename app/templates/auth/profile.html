@@ -9,17 +9,17 @@
             {{ form.csrf_token }}
             
             <div class="mui-textfield">
-                {{ form.first_name(placeholder="Имя") }}
+                {{ form.first_name(value=user.first_name) }}
                 <label>Имя</label>
             </div>
 
             <div class="mui-textfield">
-                {{ form.last_name(placeholder="Фамилия") }}
+                {{ form.last_name(value=user.last_name) }}
                 <label>Фамилия</label>
             </div>
 
             <div class="mui-textfield">
-                {{ form.bio(placeholder="О себе") }}
+                {{ form.bio(placeholder=user.bio) }}
                 <label>О себе</label>
             </div>
 

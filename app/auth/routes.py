@@ -120,6 +120,7 @@ def logout():
 @auth_bp.route('/profile', methods=['GET', 'POST'])
 @login_required
 def profile():
+    user = current_user
     form = ProfileUpdateForm(request.form)
     
     if request.method == 'POST':
@@ -139,16 +140,17 @@ def profile():
             db.session.commit()
             
             flash('Профиль успешно обновлен', 'success')
-            return redirect(url_for('auth.profile'))
+            return redirect(url_for('user.dashboard'))
+
         
         # Обработка ошибок валидации
         for field, errors in form.errors.items():
             for error in errors:
                 flash(f'{getattr(form, field).label.text}: {error}', 'error')
+        return redirect(url_for('user.dashboard'))
         
-        return render_template('auth/profile.html', form=form)
+    return render_template('auth/profile.html', form=form, user=user)
     
-    return render_template('auth/profile.html', form=form)
 
 @auth_bp.route('/change-password', methods=['GET', 'POST'])
 @login_required
