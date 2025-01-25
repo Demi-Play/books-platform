@@ -11,3 +11,5 @@ function closeBlockModal() {
     const modal = document.getElementById('blockModal');
     modal.style.display = 'none';
 }
+
+

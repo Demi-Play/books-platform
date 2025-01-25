@@ -102,8 +102,6 @@ class User(db.Model, UserMixin):
                 duration=1,  # Блокировка на 1 час
                 reason="Превышено количество попыток входа"
             )
-        
-    
 
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)

@@ -111,6 +111,17 @@ def block_user():
     
     return redirect(url_for('admin.manage_users'))
 
+@admin_bp.route('/users/unblock/<int:user_id>', methods=['GET', 'POST'])
+@roles_required(UserRole.ADMIN)
+def unblock_user(user_id):
+    user = User.query.get_or_404(user_id)
+    
+    # Разблокировка
+    if user.blocked_until:
+        user.unblock()
+        flash(f'Пользователь {user.username} разблокирован', 'success')
+    
+    return redirect(url_for('admin.manage_users'))
 
 
 @author_bp.route('/dashboard/author')

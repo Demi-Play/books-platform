@@ -60,13 +60,21 @@
                         </td>
                         <td>
                             <div class="mui-btn-group">
-                                <button 
-                                    type="button" 
-                                    class="mui-btn mui-btn--primary"
-                                    onclick="openBlockModal({{ user.id }})"
-                                >
-                                    {{ 'Разблокировать' if user.blocked_until else 'Заблокировать' }}
-                                </button>
+                                {% if user.blocked_until %}
+                                    <a href="{{ url_for('admin.unblock_user', user_id=user.id) }}"
+                                        class="mui-btn mui-btn--primary"
+                                    >
+                                    Разблокировать
+                                </a>
+                                {% else %}
+                                    <button 
+                                        type="button" 
+                                        class="mui-btn mui-btn--primary"
+                                        onclick="openBlockModal({{ user.id }})"
+                                    >
+                                    Заблокировать
+                                    </button>
+                                {% endif %}
                             </div>
                         </td>
                     </tr>
