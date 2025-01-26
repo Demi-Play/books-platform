@@ -81,7 +81,7 @@
                         <div class="mui-col-md-4">
                         {% for bookmark in bookmarks %}
                                 <a href="{{ url_for('books.read_book', book_id=bookmark.book.id) }}" class="mui-btn mui-btn--primary">
-                                {{ bookmark.book.title }} 
+                                {{ bookmark.book.title }}
                                 </a>
                         {% endfor %}
                         </div>
