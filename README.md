@@ -57,22 +57,7 @@ venv\Scripts\activate
 pip install -r requirements.txt
 ```
 
-### 4. Установка дополнительных зависимостей
-
-Языковая модель spaCy
-
-```bash
-python -m spacy download ru_core_news_sm
-python -m spacy download ru_core_news_md
-```
-
-Установка моделей
-
-```bash
-pip install textblob
-```
-
-### 5. Запуск приложения
+### 4. Запуск приложения
 Перейдите в каталог с файлом run.py и запустите его через терминал следующим образом: 
 ```bash
 python run.py
