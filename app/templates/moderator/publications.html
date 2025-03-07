@@ -3,41 +3,75 @@
 {% block content %}
 <div class="mui-container">
     <div class="mui-panel">
-        <h1>Модерация публикаций</h1>
-        <div class="book-grid">
-            {% for book in books %}
-            <div class="mui-panel book-card">
-                <h3>{{ book.title }}</h3>
-                <p>{{ book.description[:200] }}</p>
-                <p>Текущий статус: 
-                    {% if book.status == 'pending' %}
-                    Ожидает подтверждения
-                    {% elif book.status == 'approved' %}
-                    Опубликован
-                    {% elif book.status == 'rejected' %}
-                    Публикация отклонена
-                    {% endif %}
-                </p>
-                <div class="book-actions">
-                    <button 
-                        class="mui-btn mui-btn--success approve-book" 
-                        data-book-id="{{ book.id }}"
-                    >
-                        Одобрить
-                    </button>
-                    <button 
-                        class="mui-btn mui-btn--danger reject-book" 
-                        data-book-id="{{ book.id }}"
-                    >
-                        Отклонить
-                    </button>
-                </div>
+        <h2>Управление публикациями</h2>
+        
+        <div class="mui-row">
+            <div class="mui-col-md-12">
+                <a href="{{ url_for('moderator.manage_genres') }}" class="mui-btn mui-btn--primary">
+                    <span class="material-icons">category</span>
+                    Управление жанрами
+                </a>
             </div>
-            {% endfor %}
+        </div>
+        
+        <div class="mui-table-responsive">
+            <table class="mui-table mui-table--bordered">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Название</th>
+                        <th>Автор</th>
+                        <th>Статус</th>
+                        <th>Жанры</th>
+                        <th>Действия</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for book in books %}
+                    <tr>
+                        <td>{{ book.id }}</td>
+                        <td>{{ book.title }}</td>
+                        <td>{{ book.author.username }}</td>
+                        <td>
+                            <span class="mui-badge mui-badge--{{ 'success' if book.status == 'approved' else 'warning' if book.status == 'pending' else 'danger' }}">
+                                {{ book.status }}
+                            </span>
+                        </td>
+                        <td>
+                            {% for genre in book.genres %}
+                                <span class="mui-badge">{{ genre.name }}</span>
+                            {% endfor %}
+                        </td>
+                        <td>
+                            <div class="mui-btn-group">
+                                <a href="{{ url_for('moderator.edit_book', book_id=book.id) }}" class="mui-btn mui-btn--small mui-btn--primary">
+                                    <span class="material-icons">edit</span>
+                                </a>
+                                {% if book.status != 'approved' %}
+                                <form action="{{ url_for('moderator.approve_book', book_id=book.id) }}" method="POST" style="display: inline;">
+                                    <button type="submit" class="mui-btn mui-btn--small mui-btn--success">
+                                        <span class="material-icons">check</span>
+                                    </button>
+                                </form>
+                                {% endif %}
+                                {% if book.status != 'rejected' %}
+                                <form action="{{ url_for('moderator.reject_book', book_id=book.id) }}" method="POST" style="display: inline;">
+                                    <button type="submit" class="mui-btn mui-btn--small mui-btn--danger">
+                                        <span class="material-icons">close</span>
+                                    </button>
+                                </form>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="6">Книг пока нет</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
         </div>
     </div>
 </div>
-
-<script src="{{ url_for('static', filename='js/publication.js') }}"></script>
-
 {% endblock %}

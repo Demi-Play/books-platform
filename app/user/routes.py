@@ -252,26 +252,233 @@ def author_dashboard():
 @moderator_bp.route('/publications')
 @roles_required(UserRole.MODERATOR)
 def manage_publications():
+    """Управление публикациями"""
     books = Book.query.all()
-    return render_template('moderator/publications.html', books=books, UserRole=UserRole)
+    genres = Genre.query.all()
+    return render_template(
+        'moderator/publications.html', 
+        books=books, 
+        genres=genres,
+        UserRole=UserRole
+    )
 
 @moderator_bp.route('/book/<int:book_id>/approve', methods=['POST'])
-@roles_required(UserRole.MODERATOR)
+@roles_required(UserRole.MODERATOR, UserRole.ADMIN)
 def approve_book(book_id):
+    """Одобрение книги"""
     book = Book.query.get_or_404(book_id)
     book.status = 'approved'
     db.session.commit()
-    books = Book.query.all()
-    return redirect(url_for('moderator.manage_publications', books=books))
+    flash('Книга одобрена', 'success')
+    return redirect(url_for('moderator.manage_publications'))
 
 @moderator_bp.route('/book/<int:book_id>/reject', methods=['POST'])
-@roles_required(UserRole.MODERATOR)
+@roles_required(UserRole.MODERATOR, UserRole.ADMIN)
 def reject_book(book_id):
+    """Отклонение книги"""
     book = Book.query.get_or_404(book_id)
     book.status = 'rejected'
     db.session.commit()
-    books = Book.query.all()
-    return redirect(url_for('moderator.manage_publications', books=books))
+    flash('Книга отклонена', 'success')
+    return redirect(url_for('moderator.manage_publications'))
 
+@moderator_bp.route('/book/<int:book_id>/edit', methods=['GET', 'POST'])
+@roles_required(UserRole.MODERATOR, UserRole.ADMIN)
+def edit_book(book_id):
+    """Редактирование книги модератором"""
+    book = Book.query.get_or_404(book_id)
+    
+    if request.method == 'POST':
+        # Обновление данных книги
+        book.title = request.form.get('title')
+        book.description = request.form.get('description')
+        book.status = request.form.get('status')
+        
+        # Обновление жанров
+        book.genres.clear()
+        genre_ids = request.form.getlist('genres')
+        for genre_id in genre_ids:
+            genre = Genre.query.get(genre_id)
+            if genre:
+                book.genres.append(genre)
+        
+        db.session.commit()
+        flash('Книга успешно обновлена', 'success')
+        return redirect(url_for('moderator.manage_publications'))
+    
+    # Получение списка жанров для формы
+    genres = Genre.query.all()
+    return render_template(
+        'moderator/book_edit.html',
+        book=book,
+        genres=genres,
+        UserRole=UserRole
+    )
+
+@moderator_bp.route('/genres')
+@roles_required(UserRole.MODERATOR, UserRole.ADMIN)
+def manage_genres():
+    """Управление жанрами"""
+    genres = Genre.query.all()
+    return render_template(
+        'moderator/genres.html',
+        genres=genres,
+        UserRole=UserRole
+    )
+
+@moderator_bp.route('/genres/create', methods=['POST'])
+@roles_required(UserRole.MODERATOR, UserRole.ADMIN)
+def create_genre():
+    """Создание нового жанра"""
+    name = request.form.get('name')
+    description = request.form.get('description')
+    
+    if not name:
+        flash('Название жанра обязательно', 'error')
+        return redirect(url_for('moderator.manage_genres'))
+    
+    genre = Genre(
+        name=name,
+        description=description
+    )
+    db.session.add(genre)
+    
+    try:
+        db.session.commit()
+        flash('Жанр успешно создан', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Ошибка при создании жанра: {str(e)}', 'error')
+    
+    return redirect(url_for('moderator.manage_genres'))
+
+@moderator_bp.route('/genres/<int:genre_id>/edit', methods=['POST'])
+@roles_required(UserRole.MODERATOR, UserRole.ADMIN)
+def edit_genre(genre_id):
+    """Редактирование жанра"""
+    genre = Genre.query.get_or_404(genre_id)
+    
+    name = request.form.get('name')
+    description = request.form.get('description')
+    
+    if not name:
+        flash('Название жанра обязательно', 'error')
+        return redirect(url_for('moderator.manage_genres'))
+    
+    genre.name = name
+    genre.description = description
+    
+    try:
+        db.session.commit()
+        flash('Жанр успешно обновлен', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Ошибка при обновлении жанра: {str(e)}', 'error')
+    
+    return redirect(url_for('moderator.manage_genres'))
+
+@moderator_bp.route('/genres/<int:genre_id>/delete', methods=['POST'])
+@roles_required(UserRole.MODERATOR, UserRole.ADMIN)
+def delete_genre(genre_id):
+    """Удаление жанра"""
+    genre = Genre.query.get_or_404(genre_id)
+    
+    # Проверка наличия книг в жанре
+    if len(genre.books) > 0:
+        flash('Невозможно удалить жанр, содержащий книги', 'error')
+        return redirect(url_for('moderator.manage_genres'))
+    
+    try:
+        db.session.delete(genre)
+        db.session.commit()
+        flash('Жанр успешно удален', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Ошибка при удалении жанра: {str(e)}', 'error')
+    
+    return redirect(url_for('moderator.manage_genres'))
+
+@admin_bp.route('/genres')
+@roles_required(UserRole.ADMIN)
+def manage_genres():
+    """Управление жанрами в админке"""
+    genres = Genre.query.all()
+    return render_template(
+        'admin/genres.html',
+        genres=genres,
+        UserRole=UserRole
+    )
+
+@admin_bp.route('/genres/create', methods=['POST'])
+@roles_required(UserRole.ADMIN)
+def create_genre():
+    """Создание нового жанра"""
+    name = request.form.get('name')
+    description = request.form.get('description')
+    
+    if not name:
+        flash('Название жанра обязательно', 'error')
+        return redirect(url_for('admin.manage_genres'))
+    
+    genre = Genre(
+        name=name,
+        description=description
+    )
+    db.session.add(genre)
+    
+    try:
+        db.session.commit()
+        flash('Жанр успешно создан', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Ошибка при создании жанра: {str(e)}', 'error')
+    
+    return redirect(url_for('admin.manage_genres'))
+
+@admin_bp.route('/genres/<int:genre_id>/edit', methods=['POST'])
+@roles_required(UserRole.ADMIN)
+def edit_genre(genre_id):
+    """Редактирование жанра"""
+    genre = Genre.query.get_or_404(genre_id)
+    
+    name = request.form.get('name')
+    description = request.form.get('description')
+    
+    if not name:
+        flash('Название жанра обязательно', 'error')
+        return redirect(url_for('admin.manage_genres'))
+    
+    genre.name = name
+    genre.description = description
+    
+    try:
+        db.session.commit()
+        flash('Жанр успешно обновлен', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Ошибка при обновлении жанра: {str(e)}', 'error')
+    
+    return redirect(url_for('admin.manage_genres'))
+
+@admin_bp.route('/genres/<int:genre_id>/delete', methods=['POST'])
+@roles_required(UserRole.ADMIN)
+def delete_genre(genre_id):
+    """Удаление жанра"""
+    genre = Genre.query.get_or_404(genre_id)
+    
+    # Проверка наличия книг в жанре
+    if len(genre.books) > 0:
+        flash('Невозможно удалить жанр, содержащий книги', 'error')
+        return redirect(url_for('admin.manage_genres'))
+    
+    try:
+        db.session.delete(genre)
+        db.session.commit()
+        flash('Жанр успешно удален', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Ошибка при удалении жанра: {str(e)}', 'error')
+    
+    return redirect(url_for('admin.manage_genres'))
 
     

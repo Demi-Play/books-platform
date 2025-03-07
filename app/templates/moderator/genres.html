@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="mui-container">
+    <div class="mui-panel">
+        <h2>Управление жанрами</h2>
+        
+        <!-- Форма создания жанра -->
+        <div class="mui-panel">
+            <h3>Создать новый жанр</h3>
+            <form method="POST" action="{{ url_for('moderator.create_genre') }}" class="mui-form">
+                <div class="mui-textfield">
+                    <label>Название жанра</label>
+                    <input type="text" name="name" required>
+                </div>
+                
+                <div class="mui-textfield">
+                    <label>Описание</label>
+                    <textarea name="description" rows="3"></textarea>
+                </div>
+                
+                <button type="submit" class="mui-btn mui-btn--primary mui-btn--raised">
+                    Создать жанр
+                </button>
+            </form>
+        </div>
+        
+        <!-- Список жанров -->
+        <div class="mui-panel">
+            <h3>Существующие жанры</h3>
+            <div class="mui-table-responsive">
+                <table class="mui-table mui-table--bordered">
+                    <thead>
+                        <tr>
+                            <th>Название</th>
+                            <th>Описание</th>
+                            <th>Количество книг</th>
+                            <th>Действия</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for genre in genres %}
+                        <tr>
+                            <td>
+                                <form method="POST" action="{{ url_for('moderator.edit_genre', genre_id=genre.id) }}" class="mui-form">
+                                    <input type="text" name="name" value="{{ genre.name }}" required>
+                                    <input type="hidden" name="description" value="{{ genre.description }}">
+                                    <button type="submit" class="mui-btn mui-btn--small mui-btn--primary">
+                                        <span class="material-icons">save</span>
+                                    </button>
+                                </form>
+                            </td>
+                            <td>
+                                <form method="POST" action="{{ url_for('moderator.edit_genre', genre_id=genre.id) }}" class="mui-form">
+                                    <input type="text" name="description" value="{{ genre.description }}">
+                                    <input type="hidden" name="name" value="{{ genre.name }}">
+                                    <button type="submit" class="mui-btn mui-btn--small mui-btn--primary">
+                                        <span class="material-icons">save</span>
+                                    </button>
+                                </form>
+                            </td>
+                            <td>{{ genre.books|length }}</td>
+                            <td>
+                                <form action="{{ url_for('moderator.delete_genre', genre_id=genre.id) }}" method="POST" style="display: inline;">
+                                    <button type="submit" class="mui-btn mui-btn--small mui-btn--danger" onclick="return confirm('Вы уверены, что хотите удалить этот жанр?')">
+                                        <span class="material-icons">delete</span>
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="4">Жанров пока нет</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

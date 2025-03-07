@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="mui-container">
+    <div class="mui-panel">
+        <h2>Редактирование книги</h2>
+        
+        <form method="POST" class="mui-form">
+            <div class="mui-textfield">
+                <label>Название</label>
+                <input type="text" name="title" value="{{ book.title }}" required>
+            </div>
+            
+            <div class="mui-textfield">
+                <label>Описание</label>
+                <textarea name="description" rows="5">{{ book.description }}</textarea>
+            </div>
+            
+            <div class="mui-select">
+                <label>Статус</label>
+                <select name="status">
+                    <option value="pending" {% if book.status == 'pending' %}selected{% endif %}>На рассмотрении</option>
+                    <option value="approved" {% if book.status == 'approved' %}selected{% endif %}>Одобрено</option>
+                    <option value="rejected" {% if book.status == 'rejected' %}selected{% endif %}>Отклонено</option>
+                </select>
+            </div>
+            
+            <div class="mui-textfield">
+                <label>Жанры</label>
+                <div class="mui-checkbox">
+                    {% for genre in genres %}
+                    <label>
+                        <input 
+                            type="checkbox" 
+                            name="genres" 
+                            value="{{ genre.id }}"
+                            {% if genre in book.genres %}checked{% endif %}
+                        >
+                        {{ genre.name }}
+                    </label>
+                    {% endfor %}
+                </div>
+            </div>
+            
+            <div class="mui-row">
+                <button type="submit" class="mui-btn mui-btn--primary">
+                    Сохранить изменения
+                </button>
+                <a href="{{ url_for('moderator.manage_publications') }}" class="mui-btn">
+                    Отмена
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %} 

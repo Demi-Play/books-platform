@@ -48,7 +48,7 @@
             {% if current_user.is_authenticated %}
             <button 
                 id="bookmark-button" 
-                class="mui-btn {{ 'bookmark-active' if user_bookmark else '' }}"
+                class="mui-btn {{ 'mui-btn--primary bookmark-active' if user_bookmark else 'mui-btn--primary' }}"
                 onclick="toggleBookmark({{ book.id }}, {{ user_bookmark.page if user_bookmark else 1 }})"
             >
                 {{ 'Удалить закладку' if user_bookmark else 'Добавить закладку' }}

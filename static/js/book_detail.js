@@ -88,8 +88,6 @@ function deleteComment(commentId) {
     }
 }
 
-
-
 function deleteBook(bookId) {
     if(confirm('Вы уверены, что хотите удалить книгу?')) {
         fetch(`/books/${bookId}`, {
@@ -104,7 +102,8 @@ function deleteBook(bookId) {
 
 function toggleBookmark(bookId, currentPage) {
     const bookmarkButton = document.getElementById('bookmark-button');
-    const method = bookmarkButton.classList.contains('bookmark-active') ? 'DELETE' : 'POST';
+    const hasBookmark = bookmarkButton.classList.contains('bookmark-active');
+    const method = hasBookmark ? 'DELETE' : 'POST';
     
     const formData = new FormData();
     formData.append('page', currentPage);
@@ -117,11 +116,7 @@ function toggleBookmark(bookId, currentPage) {
     .then(data => {
         if (data.success) {
             bookmarkButton.classList.toggle('bookmark-active');
-            bookmarkButton.textContent = method === 'POST' 
-                ? 'Удалить закладку' 
-                : 'Добавить закладку';
-            
-            alert(data.message);
+            bookmarkButton.textContent = hasBookmark ? 'Добавить закладку' : 'Удалить закладку';
         }
     })
     .catch(error => {

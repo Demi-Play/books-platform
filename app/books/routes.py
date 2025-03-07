@@ -148,14 +148,24 @@ def book_details(book_id):
     
     # Получение закладки пользователя для этой книги
     user_bookmark = None
+    current_user_liked = False
     if current_user.is_authenticated:
         user_bookmark = Bookmark.query.filter_by(
             user_id=current_user.id, 
             book_id=book_id
         ).first()
+        current_user_liked = Like.query.filter_by(
+            user_id=current_user.id,
+            book_id=book_id
+        ).first() is not None
     
     if request.method == 'GET':
-        return render_template('books/book_detail.html', book=book, UserRole=UserRole)
+        return render_template('books/book_detail.html', 
+            book=book, 
+            user_bookmark=user_bookmark,
+            current_user_liked=current_user_liked,
+            UserRole=UserRole
+        )
     
     elif request.method == 'POST':
         # Проверка прав на редактирование
@@ -185,7 +195,13 @@ def book_details(book_id):
             for error in errors:
                 flash(f'{getattr(form, field).label.text}: {error}', 'error')
         
-        return render_template('books/book_detail.html', book=book, form=form, user_bookmark=user_bookmark, UserRole=UserRole)
+        return render_template('books/book_detail.html', 
+            book=book, 
+            form=form, 
+            user_bookmark=user_bookmark,
+            current_user_liked=current_user_liked,
+            UserRole=UserRole
+        )
     
     elif request.method == 'DELETE':
         # Проверка прав на удаление
