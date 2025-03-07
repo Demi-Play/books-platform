@@ -1,8 +1,9 @@
 from functools import wraps
-from flask import Blueprint, flash, redirect, render_template, jsonify, request, url_for
+from flask import Blueprint, flash, redirect, render_template, jsonify, request, url_for, current_app
 from flask_login import login_required, current_user
 from app.auth.models import User, UserRole
-from app.books.models import Book, Bookmark, db
+from app.books.models import Book, Bookmark, db, Like, Comment, Genre
+import os
 
 user_bp = Blueprint('user', __name__)
 admin_bp = Blueprint('admin', __name__)
@@ -36,7 +37,24 @@ def bookmarks():
         'user/bookmarks.html', 
         bookmarks=bookmarks
     )
+
+@user_bp.route('/bookmark/<int:bookmark_id>/delete', methods=['POST'])
+@login_required
+def delete_bookmark(bookmark_id):
+    """Удаление закладки"""
+    bookmark = Bookmark.query.get_or_404(bookmark_id)
     
+    # Проверка, принадлежит ли закладка текущему пользователю
+    if bookmark.user_id != current_user.id:
+        flash('Недостаточно прав для удаления закладки', 'error')
+        return redirect(url_for('user.dashboard'))
+    
+    db.session.delete(bookmark)
+    db.session.commit()
+    
+    flash('Закладка успешно удалена', 'success')
+    return redirect(url_for('user.dashboard'))
+
 def roles_required(*roles):
     def decorator(f):
         @wraps(f)
@@ -59,7 +77,8 @@ def manage_users():
     return render_template(
         'admin/users.html', 
         users=users, 
-        roles=list(UserRole)
+        roles=list(UserRole),
+        UserRole=UserRole
     )
 
 @admin_bp.route('/users/update', methods=['POST'])
@@ -123,6 +142,91 @@ def unblock_user(user_id):
     
     return redirect(url_for('admin.manage_users'))
 
+@admin_bp.route('/books')
+@roles_required(UserRole.ADMIN)
+def manage_books():
+    """Управление книгами в админке"""
+    books = Book.query.all()
+    return render_template(
+        'admin/books.html',
+        books=books,
+        UserRole=UserRole
+    )
+
+@admin_bp.route('/books/<int:book_id>/update', methods=['POST'])
+@roles_required(UserRole.ADMIN)
+def update_book(book_id):
+    """Обновление статуса книги"""
+    book = Book.query.get_or_404(book_id)
+    
+    # Обновление статуса
+    new_status = request.form.get('status')
+    if new_status in ['pending', 'approved', 'rejected']:
+        book.status = new_status
+        db.session.commit()
+        flash(f'Статус книги "{book.title}" обновлен', 'success')
+    else:
+        flash('Некорректный статус', 'error')
+    
+    return redirect(url_for('admin.manage_books'))
+
+@admin_bp.route('/books/<int:book_id>/delete', methods=['POST'])
+@roles_required(UserRole.ADMIN)
+def delete_book(book_id):
+    """Удаление книги"""
+    book = Book.query.get_or_404(book_id)
+    
+    # Удаление связанных данных
+    Bookmark.query.filter_by(book_id=book_id).delete()
+    Like.query.filter_by(book_id=book_id).delete()
+    Comment.query.filter_by(book_id=book_id).delete()
+    
+    # Удаление файла книги
+    if book.file_path:
+        try:
+            os.remove(os.path.join(current_app.config['UPLOAD_FOLDER'], book.file_path))
+        except:
+            pass
+    
+    # Удаление книги
+    db.session.delete(book)
+    db.session.commit()
+    
+    flash(f'Книга "{book.title}" успешно удалена', 'success')
+    return redirect(url_for('admin.manage_books'))
+
+@admin_bp.route('/books/<int:book_id>/edit', methods=['GET', 'POST'])
+@roles_required(UserRole.ADMIN)
+def edit_book(book_id):
+    """Редактирование книги"""
+    book = Book.query.get_or_404(book_id)
+    
+    if request.method == 'POST':
+        # Обновление данных книги
+        book.title = request.form.get('title')
+        book.description = request.form.get('description')
+        book.status = request.form.get('status')
+        
+        # Обновление жанров
+        book.genres.clear()
+        genre_ids = request.form.getlist('genres')
+        for genre_id in genre_ids:
+            genre = Genre.query.get(genre_id)
+            if genre:
+                book.genres.append(genre)
+        
+        db.session.commit()
+        flash('Книга успешно обновлена', 'success')
+        return redirect(url_for('admin.manage_books'))
+    
+    # Получение списка жанров для формы
+    genres = Genre.query.all()
+    return render_template(
+        'admin/book_edit.html',
+        book=book,
+        genres=genres,
+        UserRole=UserRole
+    )
 
 @author_bp.route('/dashboard/author')
 @login_required
@@ -140,7 +244,8 @@ def author_dashboard():
     return render_template(
         'author/dashboard.html', 
         books=books, 
-        book_stats=book_stats
+        book_stats=book_stats,
+        UserRole=UserRole
     )
 
     
@@ -148,7 +253,7 @@ def author_dashboard():
 @roles_required(UserRole.MODERATOR)
 def manage_publications():
     books = Book.query.all()
-    return render_template('moderator/publications.html', books=books)
+    return render_template('moderator/publications.html', books=books, UserRole=UserRole)
 
 @moderator_bp.route('/book/<int:book_id>/approve', methods=['POST'])
 @roles_required(UserRole.MODERATOR)

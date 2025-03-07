@@ -2,28 +2,55 @@
 
 {% block content %}
 <div class="mui-container">
-    <h2>Читательские клубы</h2>
-    
-    <div class="mui-row">
-        {% for club in clubs %}
-        <div class="mui-col-md-4">
-            <div class="mui-panel">
-                <h3>{{ club.name }}</h3>
-                <p>{{ club.description }}</p>
-                <a href="{{ url_for('reading_clubs.club_details', club_id=club.id) }}" class="mui-btn mui-btn--primary">
-                    Подробнее
-                </a>
+    <div class="mui-panel">
+        <h2>Книги по жанрам</h2>
+        
+        <!-- Категории (жанры) -->
+        <div class="mui-row" style="margin: 20px 0;">
+            <div class="mui-col-md-12">
+                <h3>Жанры</h3>
+                <div class="mui-btn-group">
+                    <a href="{{ url_for('books.list_books') }}" 
+                       class="mui-btn {% if not selected_category %}mui-btn--primary{% endif %}">
+                        Все жанры
+                    </a>
+                    {% for category in categories %}
+                    <a href="{{ url_for('reading_clubs.index', category=category.id) }}" 
+                       class="mui-btn {% if selected_category and selected_category.id == category.id %}mui-btn--primary{% endif %}">
+                        {{ category.name }}
+                    </a>
+                    {% endfor %}
+                </div>
             </div>
         </div>
-        {% endfor %}
+        
+        <!-- Список книг -->
+        <div class="mui-row">
+            {% if selected_category %}
+                <h3>Книги жанра "{{ selected_category.name }}"</h3>
+            {% endif %}
+            
+            {% for book in books %}
+            <div class="mui-col-md-4">
+                <div class="mui-panel">
+                    <h4>{{ book.title }}</h4>
+                    <p>{{ book.description[:200] }}{% if book.description|length > 200 %}...{% endif %}</p>
+                    <div class="mui-row">
+                        <div class="mui-col-md-12">
+                            <a href="{{ url_for('books.book_details', book_id=book.id) }}" 
+                               class="mui-btn mui-btn--primary">
+                                Подробнее
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% else %}
+            <div class="mui-col-md-12">
+                <p>{% if selected_category %}В этом жанре пока нет книг{% else %}Выберите жанр, чтобы увидеть список книг{% endif %}</p>
+            </div>
+            {% endfor %}
+        </div>
     </div>
-
-    {% if current_user.is_authenticated %}
-    <div class="mui-panel">
-        <a href="{{ url_for('reading_clubs.create_club') }}" class="mui-btn mui-btn--raised">
-            Создать клуб
-        </a>
-    </div>
-    {% endif %}
 </div>
 {% endblock %}

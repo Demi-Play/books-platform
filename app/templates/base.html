@@ -6,20 +6,23 @@
     <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700&display=swap" />
     <!-- Material Icons -->
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
-    
     <!-- MUI CSS -->
     <link href="https://cdn.jsdelivr.net/npm/muicss@0.10.3/dist/css/mui.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+
 </head>
 <body>
     <header>
         <nav>
-            <div class="mui-container">
-                <a href="{{ url_for('main.index') }}" class="mui-btn mui-btn--primary">Главная</a>
+            <div class="mui-container" style="display: flex; align-items: center; position: fixed; top: 0; left: 0; right: 0; z-index: 1000;">
+                <a href="{{ url_for('main.index') }}" class="mui-btn">Главная</a>
                 {% if current_user.is_authenticated %}
+                    {% if current_user.role == UserRole.MODERATOR or current_user.role == UserRole.ADMIN %}
                     <a href="{{ url_for('books.upload_book') }}" class="mui-btn">Загрузить книгу</a>
+                    {% endif %}
                     <a href="{{ url_for('books.list_books') }}" class="mui-btn">Читательский зал</a>
                     <a href="{{ url_for('user.dashboard') }}" class="mui-btn">Личный кабинет</a>
-                    <a href="{{ url_for('auth.logout') }}" class="mui-btn mui-btn--danger">Выйти</a>
+                    <a href="{{ url_for('auth.logout') }}" class="mui-btn mui-btn--danger mui-btn--raised">Выйти</a>
                 {% else %}
                     <a href="{{ url_for('auth.login') }}" class="mui-btn">Войти</a>
                     <a href="{{ url_for('auth.register') }}" class="mui-btn">Регистрация</a>
@@ -28,7 +31,7 @@
         </nav>
     </header>
 
-    <main class="mui-container">
+    <main class="mui-container" style="margin-top: 60px;">
         {% with messages = get_flashed_messages(with_categories=true) %}
             {% if messages %}
                 {% for category, message in messages %}
@@ -41,7 +44,7 @@
     </main>
 
     <footer class="mui-container">
-        <p>&copy; {{ current_year }} Книжная платформа</p>
+        <p> Агафонова Тамара &copy; {{ current_year }} Книжная платформа</p>
     </footer>
 
     <script src="https://cdn.jsdelivr.net/npm/muicss@0.10.3/dist/js/mui.min.js"></script>

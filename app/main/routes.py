@@ -1,5 +1,5 @@
 from flask import Blueprint, render_template
-from app.auth.models import User
+from app.auth.models import User, UserRole
 from app.books.models import Book, Genre, ReadingClub
 from sqlalchemy import func
 
@@ -26,6 +26,7 @@ def index():
         total_users=total_users,
         total_clubs=total_clubs,
         latest_books=latest_books, 
-        genres=genres
+        genres=genres,
+        UserRole=UserRole
     )
     

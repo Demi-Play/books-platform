@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="mui-container">
+    <div class="mui-panel">
+        <h2>Редактирование книги</h2>
+        
+        <form method="POST" class="mui-form">
+            <div class="mui-textfield">
+                <label>Название</label>
+                <input type="text" name="title" value="{{ book.title }}" required>
+            </div>
+            
+            <div class="mui-textfield">
+                <label>Описание</label>
+                <textarea name="description" rows="5">{{ book.description }}</textarea>
+            </div>
+            
+            <div class="mui-select">
+                <label>Статус</label>
+                <select name="status" required>
+                    <option value="pending" {% if book.status == 'pending' %}selected{% endif %}>На рассмотрении</option>
+                    <option value="approved" {% if book.status == 'approved' %}selected{% endif %}>Одобрена</option>
+                    <option value="rejected" {% if book.status == 'rejected' %}selected{% endif %}>Отклонена</option>
+                </select>
+            </div>
+            
+            <div class="mui-select">
+                <label>Жанры</label>
+                <select name="genres" multiple required>
+                    {% for genre in genres %}
+                    <option value="{{ genre.id }}" {% if genre in book.genres %}selected{% endif %}>
+                        {{ genre.name }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <div class="mui-row">
+                <div class="mui-col-md-6">
+                    <button type="submit" class="mui-btn mui-btn--primary mui-btn--raised">
+                        Сохранить изменения
+                    </button>
+                    <a href="{{ url_for('admin.manage_books') }}" class="mui-btn">
+                        Отмена
+                    </a>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %} 

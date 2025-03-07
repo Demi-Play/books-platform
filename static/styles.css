@@ -1,0 +1,40 @@
+.mui-btn, button, a  {
+    background-color: #0ddf1e;
+    color: #fff;
+}
+
+
+
+.mui-btn--primary:hover {
+    background-color: #fff;
+    color: #000;
+}
+
+.mui-btn--danger {
+    background-color: #ff0000;
+    color: #fff;
+}
+
+.mui-btn--danger:hover {
+    background-color: #fff;
+    color: #000;
+}
+
+
+.hero-section {
+    background-color: #0ddf1e;
+}
+
+.hero-section {
+    background: linear-gradient(135deg, #016617 0%, #20ff32 100%);
+    color: #fff;
+
+}
+
+@media (min-width: 768px) {
+    .mui-col-md-8 {
+        width: 100%;
+    }
+}
+
+

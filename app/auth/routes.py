@@ -149,7 +149,7 @@ def profile():
                 flash(f'{getattr(form, field).label.text}: {error}', 'error')
         return redirect(url_for('user.dashboard'))
         
-    return render_template('auth/profile.html', form=form, user=user)
+    return render_template('auth/profile.html', form=form, user=user, UserRole=UserRole)
     
 
 @auth_bp.route('/change-password', methods=['GET', 'POST'])
@@ -176,4 +176,4 @@ def change_password():
         
         return render_template('auth/change_password.html', form=form)
     
-    return render_template('auth/change_password.html', form=form)
+    return render_template('auth/change_password.html', form=form, UserRole=UserRole)

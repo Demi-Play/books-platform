@@ -22,7 +22,7 @@ from app.reading_clubs.routes import reading_clubs_bp
 
 class Config:
     """Конфигурация приложения"""
-    SECRET_KEY = os.getenv('SECRET_KEY', 'your_super_secret_key')
+    SECRET_KEY = os.getenv('SECRET_KEY', 'tamarasecretagafonovakey')
     
     # Конфигурация базы данных
     SQLALCHEMY_DATABASE_URI = os.getenv('DATABASE_URL', 'sqlite:///booksplatform.db')

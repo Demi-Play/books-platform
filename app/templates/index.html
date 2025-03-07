@@ -11,7 +11,7 @@
                 <a href="{{ url_for('auth.register') }}" class="mui-btn mui-btn--raised mui-btn--primary">
                     Регистрация
                 </a>
-                <a href="{{ url_for('auth.login') }}" class="mui-btn mui-btn--flat">
+                <a href="{{ url_for('auth.login') }}" class="mui-btn mui-btn--raised mui-btn--primary">
                     Войти
                 </a>
             </div>
@@ -64,7 +64,6 @@
                 <div class="book-card">
                     <img src="{{ url_for('static', filename='default_cover.jpg') }}" style="max-width: 5%;" alt="{{ book.title }}">
                     <h4>{{ book.title }}</h4>
-                    <p>{{ book.author.username }}</p>
                     <a href="{{ url_for('books.book_details', book_id=book.id) }}" class="mui-btn mui-btn--small">
                         Подробнее
                     </a>
@@ -104,7 +103,6 @@
 }
 
 .hero-section {
-    background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
     color: white;
     padding: 4rem 0;
     margin-bottom: 2rem;

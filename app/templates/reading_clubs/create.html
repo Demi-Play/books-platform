@@ -3,20 +3,39 @@
 {% block content %}
 <div class="mui-container">
     <div class="mui-panel">
-        <h2>Создание читательского клуба</h2>
+        <h2>Создание нового клуба</h2>
         
         <form method="POST" class="mui-form">
             <div class="mui-textfield">
-                <input type="text" name="name" required placeholder="Название клуба">
+                <label>Название клуба</label>
+                <input type="text" name="name" required>
             </div>
             
             <div class="mui-textfield">
-                <textarea name="description" placeholder="Описание клуба"></textarea>
+                <label>Описание</label>
+                <textarea name="description" rows="5"></textarea>
             </div>
             
-            <button type="submit" class="mui-btn mui-btn--primary">
-                Создать клуб
-            </button>
+            <div class="mui-select">
+                <label>Категория</label>
+                <select name="category_id" required>
+                    <option value="">Выберите категорию</option>
+                    {% for category in categories %}
+                    <option value="{{ category.id }}">{{ category.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <div class="mui-row">
+                <div class="mui-col-md-6">
+                    <button type="submit" class="mui-btn mui-btn--primary mui-btn--raised">
+                        Создать клуб
+                    </button>
+                    <a href="{{ url_for('reading_clubs.index') }}" class="mui-btn">
+                        Отмена
+                    </a>
+                </div>
+            </div>
         </form>
     </div>
 </div>

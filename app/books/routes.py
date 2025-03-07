@@ -6,7 +6,7 @@ import os
 from werkzeug.utils import secure_filename
 from werkzeug.datastructures import MultiDict
 from sqlalchemy.orm import joinedload
-
+from app.auth.models import UserRole
 books_bp = Blueprint('books', __name__)
 
 @books_bp.route('/upload', methods=['GET', 'POST'])
@@ -67,10 +67,10 @@ def upload_book():
             for error in errors:
                 flash(f'{getattr(form, field).label.text}: {error}', 'error')
         
-        return render_template('books/book_upload.html', form=form)
+        return render_template('books/book_upload.html', form=form, UserRole=UserRole)
     
     form = BookUploadForm()
-    return render_template('books/book_upload.html', form=form)
+    return render_template('books/book_upload.html', form=form, UserRole=UserRole)
 
 @books_bp.route('/<int:book_id>/edit', methods=['GET', 'POST'])
 @login_required
@@ -109,7 +109,7 @@ def edit_book(book_id):
             for error in errors:
                 flash(f'{getattr(form, field).label.text}: {error}', 'error')
     
-    return render_template('books/book_edit.html', form=form, book=book)
+    return render_template('books/book_edit.html', form=form, book=book, UserRole=UserRole)
 
 @books_bp.route('/', methods=['GET'])
 def list_books():
@@ -134,7 +134,8 @@ def list_books():
     
     return render_template('books/book_list.html', 
         books=book_list, 
-        pagination=books
+        pagination=books,
+        UserRole=UserRole
     )
 
 @books_bp.route('/<int:book_id>', methods=['GET', 'POST', 'DELETE'])
@@ -154,7 +155,7 @@ def book_details(book_id):
         ).first()
     
     if request.method == 'GET':
-        return render_template('books/book_detail.html', book=book)
+        return render_template('books/book_detail.html', book=book, UserRole=UserRole)
     
     elif request.method == 'POST':
         # Проверка прав на редактирование
@@ -184,7 +185,7 @@ def book_details(book_id):
             for error in errors:
                 flash(f'{getattr(form, field).label.text}: {error}', 'error')
         
-        return render_template('books/book_detail.html', book=book, form=form, user_bookmark=user_bookmark)
+        return render_template('books/book_detail.html', book=book, form=form, user_bookmark=user_bookmark, UserRole=UserRole)
     
     elif request.method == 'DELETE':
         # Проверка прав на удаление
@@ -271,7 +272,8 @@ def read_book(book_id):
     
     return render_template('books/book_reader.html', 
         book=book, 
-        bookmark=bookmark
+        bookmark=bookmark,
+        UserRole=UserRole
     )
 
 
