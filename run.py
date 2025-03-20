@@ -4,6 +4,7 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from flask_login import LoginManager
 from flask_cors import CORS
+from flask_wtf.csrf import CSRFProtect
 
 
 # Импорт моделей
@@ -29,8 +30,15 @@ class Config:
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     
     # Настройки безопасности
-    SESSION_COOKIE_SECURE = True
-    REMEMBER_COOKIE_SECURE = True
+    SESSION_COOKIE_SECURE = False  # Изменено на False для локальной разработки
+    REMEMBER_COOKIE_SECURE = False  # Изменено на False для локальной разработки
+    SESSION_COOKIE_HTTPONLY = True
+    REMEMBER_COOKIE_HTTPONLY = True
+    
+    # Настройки CSRF
+    WTF_CSRF_ENABLED = True
+    WTF_CSRF_SECRET_KEY = os.getenv('CSRF_SECRET_KEY', 'csrf-secret-key')
+    WTF_CSRF_TIME_LIMIT = 3600  # 1 час
     
     # Настройки загрузки файлов
     MAX_CONTENT_LENGTH = 16 * 1024 * 1024  # 16 МБ
@@ -44,6 +52,7 @@ def create_app(config_class=Config):
     # Инициализация расширений
     db.init_app(app)
     migrate = Migrate(app, db)
+    csrf = CSRFProtect(app)
     
     # Настройка CORS
     CORS(app, resources={r"/api/*": {"origins": "*"}})
