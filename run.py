@@ -127,9 +127,8 @@ def run_app():
     
     # Запуск приложения
     app.run(
-        host='0.0.0.0', 
-        port=5000, 
-        debug=os.getenv('FLASK_DEBUG', 'True') == 'True'
+        # debug=os.getenv('FLASK_DEBUG', 'True') == 'True'
+        debug=False
     )
 
 if __name__ == '__main__':
