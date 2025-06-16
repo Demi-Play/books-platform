@@ -1,7 +1,7 @@
 from flask import Blueprint, abort, flash, redirect, request, jsonify, render_template, current_app, send_file, url_for
 from flask_login import login_required, current_user
 from .models import Book, Genre, Bookmark, Like, Comment, db
-from .forms import BookUploadForm, BookUpdateForm
+from .forms import BookUploadForm, BookUpdateForm, CommentForm, LikeForm
 import os
 from werkzeug.utils import secure_filename
 from werkzeug.datastructures import MultiDict
@@ -159,11 +159,16 @@ def book_details(book_id):
             book_id=book_id
         ).first() is not None
     
+    comment_form = CommentForm()
+    like_form = LikeForm()
+    
     if request.method == 'GET':
         return render_template('books/book_detail.html', 
             book=book, 
             user_bookmark=user_bookmark,
             current_user_liked=current_user_liked,
+            form=comment_form,
+            like_form=like_form,
             UserRole=UserRole
         )
     
@@ -311,55 +316,57 @@ def serve_pdf(book_id):
 @login_required
 def toggle_like(book_id):
     book = Book.query.get_or_404(book_id)
+    form = LikeForm()
     
-    # Проверка существующего лайка
-    existing_like = Like.query.filter_by(
-        user_id=current_user.id, 
-        book_id=book_id
-    ).first()
-    
-    if existing_like:
-        # Удаление лайка
-        db.session.delete(existing_like)
-    else:
-        # Добавление лайка
-        new_like = Like(
+    if form.validate_on_submit():
+        # Проверка существующего лайка
+        existing_like = Like.query.filter_by(
             user_id=current_user.id, 
             book_id=book_id
-        )
-        db.session.add(new_like)
+        ).first()
+        
+        if existing_like:
+            # Удаление лайка
+            db.session.delete(existing_like)
+            flash('Лайк удален', 'success')
+        else:
+            # Добавление лайка
+            new_like = Like(
+                user_id=current_user.id, 
+                book_id=book_id
+            )
+            db.session.add(new_like)
+            flash('Лайк добавлен', 'success')
+        
+        db.session.commit()
+    else:
+        flash('Ошибка при обработке лайка', 'error')
     
-    db.session.commit()
-    
-    return jsonify({
-        'total_likes': len(book.likes),
-        'liked': existing_like is None
-    })
+    return redirect(url_for('books.book_details', book_id=book_id))
 
 @books_bp.route('/<int:book_id>/comments', methods=['POST'])
 @login_required
 def add_comment(book_id):
     book = Book.query.get_or_404(book_id)
     
-    text = request.form.get('text')
-    if not text:
-        return jsonify({'error': 'Комментарий не может быть пустым'}), 400
+    form = CommentForm()
+    if form.validate_on_submit():
+        new_comment = Comment(
+            user_id=current_user.id,
+            book_id=book_id,
+            text=form.text.data
+        )
+        
+        db.session.add(new_comment)
+        db.session.commit()
+        
+        flash('Комментарий успешно добавлен', 'success')
+    else:
+        for field, errors in form.errors.items():
+            for error in errors:
+                flash(f'{getattr(form, field).label.text}: {error}', 'error')
     
-    new_comment = Comment(
-        user_id=current_user.id,
-        book_id=book_id,
-        text=text
-    )
-    
-    db.session.add(new_comment)
-    db.session.commit()
-    
-    return jsonify({
-        'id': new_comment.id,
-        'text': new_comment.text,
-        'author': current_user.username,
-        'created_at': new_comment.created_at.isoformat()
-    })
+    return redirect(url_for('books.book_details', book_id=book_id))
 
 @books_bp.route('/comments/<int:comment_id>', methods=['PUT', 'DELETE'])
 @login_required

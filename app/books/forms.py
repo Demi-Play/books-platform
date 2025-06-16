@@ -1,6 +1,6 @@
 from flask_wtf import FlaskForm
 from flask_wtf.file import FileField, FileAllowed, FileRequired
-from wtforms import StringField, TextAreaField, MultipleFileField, SelectMultipleField
+from wtforms import StringField, TextAreaField, MultipleFileField, SelectMultipleField, HiddenField
 from wtforms.validators import DataRequired, Length, Optional
 
 class BookUploadForm(FlaskForm):
@@ -55,7 +55,11 @@ class BookUpdateForm(FlaskForm):
 
 class CommentForm(FlaskForm):
     """Форма добавления комментария"""
-    text = TextAreaField('Комментарий', [
+    text = TextAreaField('Комментарий', validators=[
         DataRequired(message='Комментарий не может быть пустым'),
-        Length(max=500, message='Максимум 500 символов')
+        Length(min=1, max=1000, message='Комментарий должен быть от 1 до 1000 символов')
     ])
+
+class LikeForm(FlaskForm):
+    """Форма для лайков"""
+    pass  # Пустая форма, нужна только для CSRF токена

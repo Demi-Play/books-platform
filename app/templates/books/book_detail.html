@@ -58,25 +58,27 @@
 
         <div class="book-interactions">
             <div class="likes-section">
-                <button 
-                    id="like-button" 
-                    onclick="toggleLike({{ book.id }})"
-                    class="{{ 'liked' if current_user_liked else '' }}"
-                >
-                    ❤️ {{ book.likes|length }}
-                </button>
+                <form method="POST" action="{{ url_for('books.toggle_like', book_id=book.id) }}" style="display: inline;">
+                    {{ like_form.csrf_token }}
+                    <button 
+                        type="submit"
+                        class="mui-btn {{ 'mui-btn--primary' if current_user_liked else 'mui-btn--raised' }}"
+                    >
+                        ❤️ {{ book.likes|length }}
+                    </button>
+                </form>
             </div>
             
             <div class="comments-section">
                 <h3>Комментарии</h3>
                 
                 {% if current_user.is_authenticated %}
-                <form id="comment-form" onsubmit="addComment(event, {{ book.id }})">
-                    <textarea 
-                        id="comment-text" 
-                        placeholder="Напишите комментарий"
-                    ></textarea>
-                    <button type="submit">Отправить</button>
+                <form method="POST" action="{{ url_for('books.add_comment', book_id=book.id) }}" class="mui-form">
+                    {{ form.csrf_token }}
+                    <div class="mui-textfield">
+                        {{ form.text(placeholder="Напишите комментарий", rows=3) }}
+                    </div>
+                    <button type="submit" class="mui-btn mui-btn--primary">Отправить</button>
                 </form>
                 {% endif %}
                 
@@ -88,8 +90,8 @@
                         
                         {% if current_user == comment.author %}
                         <div class="comment-actions">
-                            <button onclick="editComment({{ comment.id }})">Редактировать</button>
-                            <button onclick="deleteComment({{ comment.id }})">Удалить</button>
+                            <button onclick="editComment({{ comment.id }})" class="mui-btn mui-btn--small">Редактировать</button>
+                            <button onclick="deleteComment({{ comment.id }})" class="mui-btn mui-btn--small mui-btn--danger">Удалить</button>
                         </div>
                         {% endif %}
                     </div>
@@ -101,7 +103,4 @@
 </div>
 
 <script src="{{ url_for('static', filename='js/book_detail.js') }}"></script>
-
-</div>
-</div>
 {% endblock %}
